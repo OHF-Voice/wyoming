@@ -17,14 +17,14 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python_version: ["3.8", "3.9", "3.10", "3.11"]
+        python_version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4.1.1
       - uses: actions/setup-python@v5
         with:
           python-version: "${{ matrix.python_version }}"
           cache: "pip"
-          cache-dependency-path: requirements_dev.txt
+          cache-dependency-path: pyproject.toml
       - run: script/setup --dev
       - run: script/lint
       - run: script/test

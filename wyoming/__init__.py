@@ -1,5 +1,6 @@
-"""The Wyoming protocol for Rhasspy."""
+"""Peer-to-peer protocol for voice assistants."""
 from .version import __version__
+
 
 __author__ = "Michael Hansen"
 __email__ = "mike@rhasspy.org"

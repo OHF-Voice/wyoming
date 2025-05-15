@@ -1,18 +1,16 @@
 """HTTP server for intent recognition/handling."""
 
-import io
 import logging
-import wave
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
-from flask import Response, request
+from flask import request
 
 from wyoming.asr import Transcript
 from wyoming.client import AsyncClient
 from wyoming.error import Error
-from wyoming.intent import Intent, NotRecognized
 from wyoming.handle import Handled, NotHandled
+from wyoming.intent import Intent, NotRecognized
 
 from .shared import get_app, get_argument_parser
 
@@ -29,7 +27,7 @@ def main():
     app = get_app("intent", CONF_PATH, args)
 
     @app.route("/api/recognize-intent", methods=["POST", "GET"])
-    async def api_stt() -> Response:
+    async def api_stt() -> Dict[str, Any]:
         uri = request.args.get("uri", args.uri)
         if not uri:
             raise ValueError("URI is required")

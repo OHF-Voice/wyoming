@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import argparse
 import subprocess
 import venv
 from pathlib import Path
@@ -7,6 +8,13 @@ _DIR = Path(__file__).parent
 _PROGRAM_DIR = _DIR.parent
 _VENV_DIR = _PROGRAM_DIR / ".venv"
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--dev", action="store_true", help="Install dev requirements")
+parser.add_argument("--http", action="store_true", help="Install http requirements")
+parser.add_argument(
+    "--zeroconf", action="store_true", help="Install zeroconf requirements"
+)
+args = parser.parse_args()
 
 # Create virtual environment
 builder = venv.EnvBuilder(with_pip=True)
@@ -19,4 +27,18 @@ subprocess.check_call(pip + ["install", "--upgrade", "pip"])
 subprocess.check_call(pip + ["install", "--upgrade", "setuptools", "wheel"])
 
 # Install requirements
-subprocess.check_call(pip + ["install", "-r", str(_PROGRAM_DIR / "requirements_dev.txt")])
+extras = []
+if args.dev:
+    extras.append("dev")
+
+if args.http:
+    extras.append("http")
+
+if args.zeroconf:
+    extras.append("zeroconf")
+
+extras_str = ""
+if extras:
+    extras_str = "[" + ",".join(extras) + "]"
+
+subprocess.check_call(pip + ["install", "-e", f"{_PROGRAM_DIR}{extras_str}"])

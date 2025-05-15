@@ -1,0 +1,64 @@
+[project]
+name = "wyoming"
+version = "1.6.1"
+description = "Peer-to-peer protocol for voice assistants"
+readme = "README.md"
+requires-python = ">=3.8.1,<3.13"
+license = {text = "MIT"}
+authors = [
+    {name = "Michael Hansen", email = "mike@rhasspy.org"}
+]
+keywords = ["voice", "assistant", "protocol"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Text Processing :: Linguistic",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+[project.urls]
+Homepage = "http://github.com/OHF-voice/wyoming"
+
+[tool.setuptools.packages.find]
+include = ["wyoming", "wyoming.*"]
+exclude = ["tests", "tests.*"]
+
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "black"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+
+[tool.mypy]
+check_untyped_defs = true
+disallow_untyped_defs = true
+
+[project.optional-dependencies]
+dev = [
+    "black==22.12.0",
+    "flake8==6.0.0",
+    "isort==5.11.3",
+    "mypy==0.991",
+    "pylint==2.15.9",
+    "pytest==7.4.4",
+    "pytest-asyncio==0.23.3",
+    "build==1.2.2.post1",
+]
+zeroconf = [
+    "zeroconf==0.88.0"
+]
+http = [
+    "Flask==3.0.2",
+    "swagger-ui-py==23.9.23",
+]

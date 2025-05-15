@@ -1,7 +1,8 @@
 # Changelog
 
-## 1.7.0
+## 1.6.1
 
+- Migrate to pyproject.toml
 - Add `language` to `transcript`
 
 ## 1.6.0
