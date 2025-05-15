@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.2
+
+- Fix http requirements
+- Add missing http conf files
+
 ## 1.6.1
 
 - Migrate to pyproject.toml
