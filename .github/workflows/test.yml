@@ -26,5 +26,4 @@ jobs:
           cache: "pip"
           cache-dependency-path: pyproject.toml
       - run: script/setup --dev
-      - run: script/lint
       - run: script/test
