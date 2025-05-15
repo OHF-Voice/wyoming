@@ -163,7 +163,11 @@ class AudioChunkConverter:
 
         if (self.width is not None) and (chunk.width != self.width):
             # Convert sample width
+            if chunk.width == 1:
+                audio_bytes = audioop.bias(audio_bytes, 1, -128)
             audio_bytes = audioop.lin2lin(audio_bytes, chunk.width, self.width)
+            if self.width == 1:
+                audio_bytes = audioop.bias(audio_bytes, 1, 128)
             width = self.width
 
         channels = chunk.channels
