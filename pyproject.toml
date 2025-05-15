@@ -29,6 +29,7 @@ exclude = ["tests", "tests.*"]
 
 [tool.setuptools.package-data]
 wyoming = ["py.typed"]
+"wyoming.http" = ["conf/*.yaml"]
 
 [build-system]
 requires = ["setuptools>=42", "wheel"]
