@@ -1,4 +1,5 @@
 """Voice activity detection."""
+
 from dataclasses import dataclass
 from typing import Optional
 

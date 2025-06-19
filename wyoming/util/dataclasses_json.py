@@ -1,4 +1,5 @@
 """Implement a tiny subset of dataclasses_json for config."""
+
 from collections.abc import Mapping, Sequence
 from dataclasses import asdict, fields, is_dataclass
 from typing import Any, Dict, Type

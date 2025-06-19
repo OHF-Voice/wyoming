@@ -1,4 +1,5 @@
 """Wake word detection"""
+
 import asyncio
 import contextlib
 import logging
@@ -121,7 +122,7 @@ class WakeProcessAsyncClient(AsyncClient, contextlib.AbstractAsyncContextManager
             self.program,
             *self.program_args,
             stdin=asyncio.subprocess.PIPE,
-            stdout=asyncio.subprocess.PIPE
+            stdout=asyncio.subprocess.PIPE,
         )
 
     async def disconnect(self) -> None:

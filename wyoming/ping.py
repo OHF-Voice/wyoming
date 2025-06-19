@@ -1,4 +1,5 @@
 """Ping/pong messages."""
+
 from dataclasses import dataclass
 from typing import Optional
 

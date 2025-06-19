@@ -1,4 +1,5 @@
 """Intent recognition and handling."""
+
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 

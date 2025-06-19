@@ -1,4 +1,5 @@
 """Microphone input."""
+
 import asyncio
 import contextlib
 import logging

@@ -1,4 +1,5 @@
 """Server tests."""
+
 import asyncio
 import socket
 import tempfile
