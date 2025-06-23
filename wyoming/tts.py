@@ -64,6 +64,9 @@ class Synthesize(Eventable):
     voice: Optional[SynthesizeVoice] = None
     """Voice to use during synthesis."""
 
+    context: Optional[Dict[str, Any]] = None
+    """Context for next interaction."""
+
     @staticmethod
     def is_type(event_type: str) -> bool:
         return event_type == _SYNTHESIZE_TYPE
@@ -72,6 +75,8 @@ class Synthesize(Eventable):
         data: Dict[str, Any] = {"text": self.text}
         if self.voice is not None:
             data["voice"] = self.voice.to_dict()
+        if self.context is not None:
+            data["context"] = self.context
 
         return Event(type=_SYNTHESIZE_TYPE, data=data)
 
@@ -81,6 +86,7 @@ class Synthesize(Eventable):
         return Synthesize(
             text=event.data["text"],
             voice=SynthesizeVoice.from_dict(event.data.get("voice", {})),
+            context=event.data.get("context"),
         )
 
 
@@ -91,6 +97,9 @@ class SynthesizeStart(Eventable):
     voice: Optional[SynthesizeVoice] = None
     """Voice to use during synthesis."""
 
+    context: Optional[Dict[str, Any]] = None
+    """Context for next interaction."""
+
     @staticmethod
     def is_type(event_type: str) -> bool:
         return event_type == _SYNTHESIZE_START_TYPE
@@ -99,6 +108,8 @@ class SynthesizeStart(Eventable):
         data: Dict[str, Any] = {}
         if self.voice is not None:
             data["voice"] = self.voice.to_dict()
+        if self.context is not None:
+            data["context"] = self.context
 
         return Event(type=_SYNTHESIZE_START_TYPE, data=data)
 
@@ -107,6 +118,7 @@ class SynthesizeStart(Eventable):
         data = event.data if event.data is not None else {}
         return SynthesizeStart(
             voice=SynthesizeVoice.from_dict(data.get("voice", {})),
+            context=event.data.get("context"),
         )
 
 

@@ -108,6 +108,7 @@ class HandledChunk(Eventable):
     """Response chunk of streaming result of successful intent handling."""
 
     text: str
+    """Chunk of response text."""
 
     @staticmethod
     def is_type(event_type: str) -> bool:
