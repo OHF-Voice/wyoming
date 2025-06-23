@@ -107,6 +107,9 @@ class TtsProgram(Artifact):
     voices: List[TtsVoice]
     """List of available voices."""
 
+    supports_synthesize_streaming: bool = False
+    """True if synthesize text streaming events are supported."""
+
 
 # -----------------------------------------------------------------------------
 

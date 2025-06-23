@@ -1,4 +1,5 @@
 """Text to speech."""
+
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
@@ -6,6 +7,12 @@ from .event import Event, Eventable
 
 DOMAIN = "tts"
 _SYNTHESIZE_TYPE = "synthesize"
+
+# streaming
+_SYNTHESIZE_START_TYPE = "synthesize-start"
+_SYNTHESIZE_CHUNK_TYPE = "synthesize-chunk"
+_SYNTHESIZE_STOP_TYPE = "synthesize-stop"
+_SYNTHESIZE_STOPPED_TYPE = "synthesize-stopped"
 
 
 @dataclass
@@ -75,3 +82,81 @@ class Synthesize(Eventable):
             text=event.data["text"],
             voice=SynthesizeVoice.from_dict(event.data.get("voice", {})),
         )
+
+
+@dataclass
+class SynthesizeStart(Eventable):
+    """Start of streaming request to synthesize audio from text."""
+
+    voice: Optional[SynthesizeVoice] = None
+    """Voice to use during synthesis."""
+
+    @staticmethod
+    def is_type(event_type: str) -> bool:
+        return event_type == _SYNTHESIZE_START_TYPE
+
+    def event(self) -> Event:
+        data: Dict[str, Any] = {}
+        if self.voice is not None:
+            data["voice"] = self.voice.to_dict()
+
+        return Event(type=_SYNTHESIZE_START_TYPE, data=data)
+
+    @staticmethod
+    def from_event(event: Event) -> "SynthesizeStart":
+        data = event.data if event.data is not None else {}
+        return SynthesizeStart(
+            voice=SynthesizeVoice.from_dict(data.get("voice", {})),
+        )
+
+
+@dataclass
+class SynthesizeChunk(Eventable):
+    """Text chunk from streaming request to synthesize audio from text."""
+
+    text: str
+    """Chunk of text to synthesize."""
+
+    @staticmethod
+    def is_type(event_type: str) -> bool:
+        return event_type == _SYNTHESIZE_CHUNK_TYPE
+
+    def event(self) -> Event:
+        return Event(type=_SYNTHESIZE_CHUNK_TYPE, data={"text": self.text})
+
+    @staticmethod
+    def from_event(event: Event) -> "SynthesizeChunk":
+        assert event.data is not None
+        return SynthesizeChunk(text=event.data["text"])
+
+
+@dataclass
+class SynthesizeStop(Eventable):
+    """End of streaming request to synthesize audio from text."""
+
+    @staticmethod
+    def is_type(event_type: str) -> bool:
+        return event_type == _SYNTHESIZE_STOP_TYPE
+
+    def event(self) -> Event:
+        return Event(type=_SYNTHESIZE_STOP_TYPE)
+
+    @staticmethod
+    def from_event(event: Event) -> "SynthesizeStop":
+        return SynthesizeStop()
+
+
+@dataclass
+class SynthesizeStopped(Eventable):
+    """End of streaming response to streaming request."""
+
+    @staticmethod
+    def is_type(event_type: str) -> bool:
+        return event_type == _SYNTHESIZE_STOPPED_TYPE
+
+    def event(self) -> Event:
+        return Event(type=_SYNTHESIZE_STOPPED_TYPE)
+
+    @staticmethod
+    def from_event(event: Event) -> "SynthesizeStopped":
+        return SynthesizeStopped()

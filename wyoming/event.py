@@ -44,6 +44,11 @@ class Eventable(ABC):
     def to_dict(self) -> Dict[str, Any]:
         return self.event().data
 
+    @staticmethod
+    @abstractmethod
+    def from_event(event: Event) -> "Eventable":
+        pass
+
 
 async def async_get_stdin(
     loop: Optional[asyncio.AbstractEventLoop] = None,
