@@ -23,7 +23,7 @@ class Transcript(Eventable):
     context: Optional[Dict[str, Any]] = None
     """Context for next interaction."""
 
-    language: str | None = None
+    language: Optional[str] = None
     """Language of the text."""
 
     @staticmethod
@@ -100,7 +100,7 @@ class TranscriptStart(Eventable):
     context: Optional[Dict[str, Any]] = None
     """Context for next interaction."""
 
-    language: str | None = None
+    language: Optional[str] = None
     """Language of the text."""
 
     @staticmethod
