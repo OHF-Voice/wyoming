@@ -77,6 +77,9 @@ class AsrProgram(Artifact):
     models: List[AsrModel]
     """List of available models."""
 
+    supports_transcript_streaming: bool = False
+    """True if transcript streaming events are supported."""
+
 
 # -----------------------------------------------------------------------------
 
@@ -128,6 +131,9 @@ class HandleProgram(Artifact):
 
     models: List[HandleModel]
     """List of available models."""
+
+    supports_handled_streaming: bool = False
+    """True if handled response streaming events are supported."""
 
 
 # -----------------------------------------------------------------------------
