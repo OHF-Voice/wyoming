@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.7.0
+
+- Add streaming to `tts`, `handle`, and `asr`
+- Add `context` to more events
+- Add more tests
+
 ## 1.6.2
 
 - Fix http requirements

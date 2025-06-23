@@ -91,6 +91,7 @@ Describe available services.
             * `installed` - true if currently installed (bool, required)
             * `description` - human-readable description (string, optional)
             * `version` - version of the model (string, optional)
+        * `supports_transcript_streaming` - true if program can stream transcript chunks
     * `tts` - list text to speech services (optional)
         * `models` - list of available models
             * `name` - unique name (required)
@@ -103,6 +104,7 @@ Describe available services.
             * `installed` - true if currently installed (bool, required)
             * `description` - human-readable description (string, optional)
             * `version` - version of the model (string, optional)
+       * `supports_synthesize_streaming` - true if program can stream text chunks
     * `wake` - list wake word detection services( optional )
         * `models` - list of available models (required)
             * `name` - unique name (required)
@@ -123,6 +125,7 @@ Describe available services.
             * `installed` - true if currently installed (bool, required)
             * `description` - human-readable description (string, optional)
             * `version` - version of the model (string, optional)
+        * `supports_handled_streaming` - true if program can stream response chunks
     * `intent` - list intent recognition services (optional)
         * `models` - list of available models (required)
             * `name` - unique name (required)
@@ -160,7 +163,18 @@ Transcribe audio into text.
     * `context` - context from previous interactions (object, optional)
 * `transcript` - response with transcription
     * `text` - text transcription of spoken audio (string, required)
+    * `language` - language of transcript (string, optional)
     * `context` - context for next interaction (object, optional)
+
+Streaming:
+
+1. `transcript-start` - starts stream
+    * `language` - language of transcript (string, optional)
+    * `context` - context from previous interactions (object, optional)
+2. `transcript-chunk`
+    * `text` - part of transcript (string, required)
+3. Original `transcript` event must be sent for backwards compatibility
+4. `transcript-stop` - end of stream
 
 ### Text to Speech
 
@@ -172,6 +186,20 @@ Synthesize audio from text.
         * `name` - name of voice (string, optional)
         * `language` - language of voice (string, optional)
         * `speaker` - speaker of voice (string, optional)
+        
+Streaming:
+
+1. `synthesize-start` - starts stream
+    * `context` - context from previous interactions (object, optional)
+    * `voice` - use a specific voice (optional)
+        * `name` - name of voice (string, optional)
+        * `language` - language of voice (string, optional)
+        * `speaker` - speaker of voice (string, optional)
+2. `synthesize-chunk`
+    * `text` - part of text to synthesize (string, required)
+3. Original `synthesize` message must be sent for backwards compatibility
+4. `synthesize-stop` - end of stream, final audio must be sent
+5. `synthesize-stopped` - sent back to server after final audio
     
 ### Wake Word
 
@@ -221,6 +249,15 @@ Handle structured intents or text directly.
 * `not-handled` - response when intent was not handled
     * `text` - response for user (string, optional)
     * `context` - context for next interactions (object, optional)
+
+Streaming:
+
+1. `handled-start` - starts stream
+    * `context` - context from previous interactions (object, optional)
+2. `handled-chunk`
+    * `text` - part of response (string, required)
+3. Original `handled` message must be sent for backwards compatibility
+4. `handled-stop` - end of stream
 
 ### Audio Output
 
@@ -295,8 +332,23 @@ Pipelines are run on the server, but can be triggered remotely from the server a
 3. &rarr; `audio-chunk` (required)
     * Send audio chunks until silence is detected
 4. &rarr; `audio-stop` (required)
-5. &larr; `transcript`
+5. &larr; `transcript` (required)
     * Contains text transcription of spoken audio
+    
+Streaming:
+
+1. &rarr; `transcribe` event (optional)
+2. &rarr; `audio-start` (required)
+3. &rarr; `audio-chunk` (required)
+    * Send audio chunks until silence is detected
+4. &larr; `transcript-start` (required)
+5. &larr; `transcript-chunk` (required)
+    * Send transcript chunks as they're produced
+6. &rarr; `audio-stop` (required)
+7. &larr; `transcript` (required)
+    * Sent for backwards compatibility
+8. &larr; `transcript-stop` (required)
+
 
 ### Text to Speech
 
@@ -305,6 +357,22 @@ Pipelines are run on the server, but can be triggered remotely from the server a
 3. &larr; `audio-chunk`
     * One or more audio chunks
 4. &larr; `audio-stop`
+
+Streaming:
+
+1. &rarr; `synthesize-start` event (required)
+3. &rarr; `synthesize-chunk` event (required)
+    * Text chunks are sent as they're produced
+3. &larr; `audio-start`, `audio-chunk` (one or more), `audio-stop`
+    * Audio chunks are sent as they're produced with start/stop
+4. &rarr; `synthesize` event
+    * Sent for backwards compatibility
+5. &rarr; `synthesize-stop` event
+    * End of text stream
+6. &larr; Final audio must be sent
+    * `audio-start`, `audio-chunk` (one or more), `audio-stop`
+7. &larr; `synthesize-stopped`
+    * Tells server that final audio has been sent
 
 ### Wake Word Detection
 
@@ -347,6 +415,16 @@ For text only:
 1. &rarr; `transcript` with `text` to handle (required)
 2. &larr; `handled` if successful
 3. &larr; `not-handled` if not successful
+    
+Streaming text only (successful):
+
+1. &rarr; `transcript` with `text` to handle (required)
+2. &larr; `handled-start` (required)
+3. &larr; `handled-chunk` (required)
+    * Chunk of response text
+4. &larr; `handled` (required)
+    * Sent for backwards compatibility
+5. &larr; `handled-stop` (required)
     
 ### Audio Output
 
