@@ -9,19 +9,18 @@ _VENV_DIR = _PROGRAM_DIR / ".venv"
 _MODULE_DIR = _PROGRAM_DIR / "wyoming"
 _TESTS_DIR = _PROGRAM_DIR / "tests"
 
-context = venv.EnvBuilder().ensure_directories(_VENV_DIR)
+if _VENV_DIR.exists():
+    context = venv.EnvBuilder().ensure_directories(_VENV_DIR)
+    python_exe = context.env_exe
+else:
+    python_exe = "python3"
+
 subprocess.check_call(
-    [context.env_exe, "-m", "black", str(_MODULE_DIR), str(_TESTS_DIR), "--check"]
+    [python_exe, "-m", "black", str(_MODULE_DIR), str(_TESTS_DIR), "--check"]
 )
 subprocess.check_call(
-    [context.env_exe, "-m", "isort", str(_MODULE_DIR), str(_TESTS_DIR), "--check"]
+    [python_exe, "-m", "isort", str(_MODULE_DIR), str(_TESTS_DIR), "--check"]
 )
-subprocess.check_call(
-    [context.env_exe, "-m", "flake8", str(_MODULE_DIR), str(_TESTS_DIR)]
-)
-subprocess.check_call(
-    [context.env_exe, "-m", "pylint", str(_MODULE_DIR), str(_TESTS_DIR)]
-)
-subprocess.check_call(
-    [context.env_exe, "-m", "mypy", str(_MODULE_DIR), str(_TESTS_DIR)]
-)
+subprocess.check_call([python_exe, "-m", "flake8", str(_MODULE_DIR), str(_TESTS_DIR)])
+subprocess.check_call([python_exe, "-m", "pylint", str(_MODULE_DIR), str(_TESTS_DIR)])
+subprocess.check_call([python_exe, "-m", "mypy", str(_MODULE_DIR), str(_TESTS_DIR)])

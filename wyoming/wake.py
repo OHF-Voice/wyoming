@@ -1,10 +1,11 @@
 """Wake word detection"""
+
 import asyncio
 import contextlib
 import logging
 from asyncio.subprocess import Process
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from .audio import AudioChunk, AudioChunkConverter
 from .client import AsyncClient
@@ -31,19 +32,23 @@ class Detection(Eventable):
     speaker: Optional[str] = None
     """Name of speaker."""
 
+    context: Optional[Dict[str, Any]] = None
+    """Context for next interaction."""
+
     @staticmethod
     def is_type(event_type: str) -> bool:
         return event_type == _DETECTION_TYPE
 
     def event(self) -> Event:
-        return Event(
-            type=_DETECTION_TYPE,
-            data={
-                "name": self.name,
-                "timestamp": self.timestamp,
-                "speaker": self.speaker,
-            },
-        )
+        data: Dict[str, Any] = {
+            "name": self.name,
+            "timestamp": self.timestamp,
+            "speaker": self.speaker,
+        }
+        if self.context is not None:
+            data["context"] = self.context
+
+        return Event(type=_DETECTION_TYPE, data=data)
 
     @staticmethod
     def from_event(event: Event) -> "Detection":
@@ -52,6 +57,7 @@ class Detection(Eventable):
             name=data.get("name"),
             timestamp=data.get("timestamp"),
             speaker=data.get("speaker"),
+            context=data.get("context"),
         )
 
 
@@ -65,33 +71,50 @@ class Detect(Eventable):
     names: Optional[List[str]] = None
     """Names of models to detect (None = any)."""
 
+    context: Optional[Dict[str, Any]] = None
+    """Context for next interaction."""
+
     @staticmethod
     def is_type(event_type: str) -> bool:
         return event_type == _DETECT_TYPE
 
     def event(self) -> Event:
-        return Event(type=_DETECT_TYPE, data={"names": self.names})
+        data: Dict[str, Any] = {"names": self.names}
+        if self.context is not None:
+            data["context"] = self.context
+
+        return Event(type=_DETECT_TYPE, data=data)
 
     @staticmethod
     def from_event(event: Event) -> "Detect":
         data = event.data or {}
-        return Detect(names=data.get("names"))
+        return Detect(names=data.get("names"), context=data.get("context"))
 
 
 @dataclass
 class NotDetected(Eventable):
     """Audio stream ended before wake word was detected."""
 
+    context: Optional[Dict[str, Any]] = None
+    """Context for next interaction."""
+
     @staticmethod
     def is_type(event_type: str) -> bool:
         return event_type == _NOT_DETECTED_TYPE
 
     def event(self) -> Event:
-        return Event(type=_NOT_DETECTED_TYPE)
+        data: Dict[str, Any] = {}
+        if self.context is not None:
+            data["context"] = self.context
+
+        return Event(type=_NOT_DETECTED_TYPE, data=data)
 
     @staticmethod
     def from_event(event: Event) -> "NotDetected":
-        return NotDetected()
+        if not event.data:
+            return NotDetected()
+
+        return NotDetected(context=event.data.get("context"))
 
 
 class WakeProcessAsyncClient(AsyncClient, contextlib.AbstractAsyncContextManager):
@@ -121,7 +144,7 @@ class WakeProcessAsyncClient(AsyncClient, contextlib.AbstractAsyncContextManager
             self.program,
             *self.program_args,
             stdin=asyncio.subprocess.PIPE,
-            stdout=asyncio.subprocess.PIPE
+            stdout=asyncio.subprocess.PIPE,
         )
 
     async def disconnect(self) -> None:

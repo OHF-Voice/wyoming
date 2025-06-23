@@ -1,4 +1,5 @@
 """HTTP server for wake word detection."""
+
 import io
 import logging
 import wave

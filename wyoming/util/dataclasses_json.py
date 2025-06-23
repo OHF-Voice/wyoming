@@ -1,4 +1,5 @@
 """Implement a tiny subset of dataclasses_json for config."""
+
 from collections.abc import Mapping, Sequence
 from dataclasses import asdict, fields, is_dataclass
 from typing import Any, Dict, Type
@@ -12,7 +13,7 @@ class DataClassJsonMixin:
         """Parse dataclasses recursively."""
         kwargs: Dict[str, Any] = {}
 
-        cls_fields = {field.name: field for field in fields(cls)}
+        cls_fields = {field.name: field for field in fields(cls)}  # type: ignore[arg-type]
         for key, value in data.items():
             if key not in cls_fields:
                 # Skip unknown fields
@@ -20,21 +21,21 @@ class DataClassJsonMixin:
 
             field = cls_fields[key]
             if is_dataclass(field.type):
-                assert issubclass(field.type, DataClassJsonMixin), field.type
-                kwargs[key] = field.type.from_dict(value)
+                assert issubclass(field.type, DataClassJsonMixin), field.type  # type: ignore[arg-type,union-attr]
+                kwargs[key] = field.type.from_dict(value)  # type: ignore[union-attr]
             else:
-                kwargs[key] = _decode(value, field.type)
+                kwargs[key] = _decode(value, field.type)  # type: ignore[arg-type]
 
         # Fill in optional fields with None
         for field in cls_fields.values():
-            if (field.name not in kwargs) and _is_optional(field.type):
+            if (field.name not in kwargs) and _is_optional(field.type):  # type: ignore[arg-type]
                 kwargs[field.name] = None
 
         return cls(**kwargs)
 
     def to_dict(self) -> Dict[str, Any]:
         """Alias for asdict."""
-        return asdict(self)
+        return asdict(self)  # type: ignore[call-overload]
 
 
 def _decode(value: Any, target_type: Type) -> Any:

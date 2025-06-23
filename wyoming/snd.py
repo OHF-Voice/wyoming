@@ -1,4 +1,5 @@
 """Audio output to speakers."""
+
 import asyncio
 import contextlib
 import logging

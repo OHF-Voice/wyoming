@@ -1,4 +1,5 @@
 """Test event reading/writing."""
+
 import io
 import json
 from typing import Iterable

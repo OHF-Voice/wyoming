@@ -1,4 +1,5 @@
 """Audio input/output."""
+
 import argparse
 import io
 import sys

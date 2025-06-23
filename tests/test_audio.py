@@ -1,4 +1,5 @@
 """Test audio utilities."""
+
 import io
 import wave
 

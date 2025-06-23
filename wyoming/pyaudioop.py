@@ -5,6 +5,7 @@ Only supports:
   - signed samples
   - tomono, tostereo, lin2lin, ratecv
 """
+
 import math
 import struct
 from typing import Final, List, Optional, Tuple, Union

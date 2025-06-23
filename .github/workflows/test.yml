@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python_version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        python_version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4.1.1
       - uses: actions/setup-python@v5
@@ -25,5 +25,5 @@ jobs:
           python-version: "${{ matrix.python_version }}"
           cache: "pip"
           cache-dependency-path: pyproject.toml
-      - run: script/setup --dev
+      - run: script/setup --dev --http --zeroconf
       - run: script/test
