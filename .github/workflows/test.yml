@@ -25,5 +25,5 @@ jobs:
           python-version: "${{ matrix.python_version }}"
           cache: "pip"
           cache-dependency-path: pyproject.toml
-      - run: script/setup --dev --http
+      - run: script/setup --dev --http --zeroconf
       - run: script/test
