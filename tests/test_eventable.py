@@ -278,11 +278,6 @@ TEST_DATA: Dict[str, Dict[str, Any]] = {
     "Ping": {},
     "Pong": {},
     "RunPipeline": {"start_stage": PipelineStage.ASR, "end_stage": PipelineStage.TTS},
-    # media
-    "MediaPlay": {"url": TEST_URL},
-    "MediaStop": {},
-    "MediaPause": {},
-    "MediaUnpause": {},
 }
 
 
