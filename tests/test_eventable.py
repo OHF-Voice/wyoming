@@ -8,7 +8,25 @@ from typing import Any, Dict, List, Type
 import pytest
 
 import wyoming
+from wyoming.audio import AudioFormat
 from wyoming.event import Eventable
+from wyoming.info import (
+    AsrModel,
+    AsrProgram,
+    Attribution,
+    HandleModel,
+    HandleProgram,
+    IntentModel,
+    IntentProgram,
+    MicProgram,
+    Satellite,
+    SndProgram,
+    TtsProgram,
+    TtsVoice,
+    TtsVoiceSpeaker,
+    WakeModel,
+    WakeProgram,
+)
 from wyoming.intent import Entity
 from wyoming.pipeline import PipelineStage
 from wyoming.tts import SynthesizeVoice
@@ -33,16 +51,155 @@ TEST_NAME = "test-name"
 TEST_TEXT = "test text"
 TEST_CONTEXT = {"test": "context"}
 TEST_AUDIO_SETTINGS = {"rate": 22050, "width": 2, "channels": 1}
+TEST_AUDIO_FORMAT = AudioFormat(22050, 2, 1)
 TEST_ID = "test-id"
 TEST_LANGUAGE = "test-language"
 TEST_SPEAKER = "test-speaker"
 TEST_TIMESTAMP = 1234
+TEST_URL = "test://url"
+TEST_DESCRIPTION = "test description"
+TEST_VERSION = "test-version"
+TEST_WAKE_WORD = "test-wake-word"
 TEST_VOICE = SynthesizeVoice(name=TEST_NAME, speaker=TEST_SPEAKER)
+TEST_ATTRIBUTION = Attribution(name=TEST_NAME, url=TEST_URL)
 
 TEST_DATA: Dict[str, Dict[str, Any]] = {
     # info
     "Describe": {},
-    "Info": {},
+    "Info": {
+        "asr": [
+            AsrProgram(
+                name=TEST_NAME,
+                attribution=TEST_ATTRIBUTION,
+                installed=True,
+                description=TEST_DESCRIPTION,
+                version=TEST_VERSION,
+                models=[
+                    AsrModel(
+                        name=TEST_NAME,
+                        attribution=TEST_ATTRIBUTION,
+                        installed=True,
+                        description=TEST_DESCRIPTION,
+                        version=TEST_VERSION,
+                        languages=[TEST_LANGUAGE],
+                    )
+                ],
+                supports_transcript_streaming=True,
+            )
+        ],
+        "tts": [
+            TtsProgram(
+                name=TEST_NAME,
+                attribution=TEST_ATTRIBUTION,
+                installed=True,
+                description=TEST_DESCRIPTION,
+                version=TEST_VERSION,
+                voices=[
+                    TtsVoice(
+                        name=TEST_NAME,
+                        attribution=TEST_ATTRIBUTION,
+                        installed=True,
+                        description=TEST_DESCRIPTION,
+                        version=TEST_VERSION,
+                        languages=[TEST_LANGUAGE],
+                        speakers=[TtsVoiceSpeaker(TEST_SPEAKER)],
+                    )
+                ],
+                supports_synthesize_streaming=True,
+            )
+        ],
+        "handle": [
+            HandleProgram(
+                name=TEST_NAME,
+                attribution=TEST_ATTRIBUTION,
+                installed=True,
+                description=TEST_DESCRIPTION,
+                version=TEST_VERSION,
+                models=[
+                    HandleModel(
+                        name=TEST_NAME,
+                        attribution=TEST_ATTRIBUTION,
+                        installed=True,
+                        description=TEST_DESCRIPTION,
+                        version=TEST_VERSION,
+                        languages=[TEST_LANGUAGE],
+                    )
+                ],
+                supports_handled_streaming=True,
+            )
+        ],
+        "intent": [
+            IntentProgram(
+                name=TEST_NAME,
+                attribution=TEST_ATTRIBUTION,
+                installed=True,
+                description=TEST_DESCRIPTION,
+                version=TEST_VERSION,
+                models=[
+                    IntentModel(
+                        name=TEST_NAME,
+                        attribution=TEST_ATTRIBUTION,
+                        installed=True,
+                        description=TEST_DESCRIPTION,
+                        version=TEST_VERSION,
+                        languages=[TEST_LANGUAGE],
+                    )
+                ],
+            )
+        ],
+        "wake": [
+            WakeProgram(
+                name=TEST_NAME,
+                attribution=TEST_ATTRIBUTION,
+                installed=True,
+                description=TEST_DESCRIPTION,
+                version=TEST_VERSION,
+                models=[
+                    WakeModel(
+                        name=TEST_NAME,
+                        attribution=TEST_ATTRIBUTION,
+                        installed=True,
+                        description=TEST_DESCRIPTION,
+                        version=TEST_VERSION,
+                        languages=[TEST_LANGUAGE],
+                        phrase="test phrase",
+                    )
+                ],
+            )
+        ],
+        "mic": [
+            MicProgram(
+                name=TEST_NAME,
+                attribution=TEST_ATTRIBUTION,
+                installed=True,
+                description=TEST_DESCRIPTION,
+                version=TEST_VERSION,
+                mic_format=TEST_AUDIO_FORMAT,
+            )
+        ],
+        "snd": [
+            SndProgram(
+                name=TEST_NAME,
+                attribution=TEST_ATTRIBUTION,
+                installed=True,
+                description=TEST_DESCRIPTION,
+                version=TEST_VERSION,
+                snd_format=TEST_AUDIO_FORMAT,
+            )
+        ],
+        "satellite": Satellite(
+            name=TEST_NAME,
+            attribution=TEST_ATTRIBUTION,
+            installed=True,
+            description=TEST_DESCRIPTION,
+            version=TEST_VERSION,
+            area="test area",
+            has_vad=True,
+            active_wake_words=[TEST_WAKE_WORD],
+            max_active_wake_words=1,
+            supports_trigger=True,
+        ),
+    },
     # audio
     "AudioStart": TEST_AUDIO_SETTINGS,
     "AudioChunk": {**TEST_AUDIO_SETTINGS, "audio": bytes(100)},
@@ -122,7 +279,7 @@ TEST_DATA: Dict[str, Dict[str, Any]] = {
     "Pong": {},
     "RunPipeline": {"start_stage": PipelineStage.ASR, "end_stage": PipelineStage.TTS},
     # media
-    "MediaPlay": {"url": "test://url"},
+    "MediaPlay": {"url": TEST_URL},
     "MediaStop": {},
     "MediaPause": {},
     "MediaUnpause": {},
