@@ -41,7 +41,6 @@ class Recognize(Eventable):
 
     @staticmethod
     def from_event(event: Event) -> "Recognize":
-        assert event.data is not None
         return Recognize(text=event.data["text"], context=event.data.get("context"))
 
 
@@ -95,7 +94,6 @@ class Intent(Eventable):
 
     @staticmethod
     def from_event(event: Event) -> "Intent":
-        assert event.data is not None
         return Intent.from_dict(event.data)
 
     def to_rhasspy(self) -> Dict[str, Any]:
@@ -136,7 +134,6 @@ class NotRecognized(Eventable):
 
     @staticmethod
     def from_event(event: Event) -> "NotRecognized":
-        assert event.data is not None
         return NotRecognized(
             text=event.data.get("text"), context=event.data.get("context")
         )

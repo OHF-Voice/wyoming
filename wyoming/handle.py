@@ -119,7 +119,6 @@ class HandledChunk(Eventable):
 
     @staticmethod
     def from_event(event: Event) -> "HandledChunk":
-        assert event.data is not None
         return HandledChunk(text=event.data["text"])
 
 

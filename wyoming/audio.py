@@ -63,8 +63,6 @@ class AudioChunk(AudioFormat, Eventable):
 
     @staticmethod
     def from_event(event: Event) -> "AudioChunk":
-        assert event.data is not None
-
         return AudioChunk(
             rate=event.data["rate"],
             width=event.data["width"],
@@ -110,7 +108,6 @@ class AudioStart(AudioFormat, Eventable):
 
     @staticmethod
     def from_event(event: Event) -> "AudioStart":
-        assert event.data is not None
         return AudioStart(
             rate=event.data["rate"],
             width=event.data["width"],

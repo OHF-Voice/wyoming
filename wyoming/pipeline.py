@@ -120,8 +120,6 @@ class RunPipeline(Eventable):
 
     @staticmethod
     def from_event(event: Event) -> "RunPipeline":
-        assert event.data is not None
-
         return RunPipeline(
             start_stage=PipelineStage(event.data["start_stage"]),
             end_stage=PipelineStage(event.data["end_stage"]),

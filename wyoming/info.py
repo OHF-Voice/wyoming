@@ -275,8 +275,6 @@ class Info(Eventable):
 
     @staticmethod
     def from_event(event: Event) -> "Info":
-        assert event.data is not None
-
         satellite: Optional[Satellite] = None
         satellite_data = event.data.get("satellite")
         if satellite_data is not None:

@@ -42,7 +42,6 @@ class Transcript(Eventable):
 
     @staticmethod
     def from_event(event: Event) -> "Transcript":
-        assert event.data is not None
         return Transcript(
             text=event.data["text"],
             language=event.data.get("language"),
@@ -142,7 +141,6 @@ class TranscriptChunk(Eventable):
 
     @staticmethod
     def from_event(event: Event) -> "TranscriptChunk":
-        assert event.data is not None
         return TranscriptChunk(text=event.data["text"])
 
 

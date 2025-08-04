@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.7.2
+
+- Fix event data being `None`
+
+## 1.7.1
+
+- Loosen Python version requirement
+
 ## 1.7.0
 
 - Add streaming to `tts`, `handle`, and `asr`

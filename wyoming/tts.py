@@ -82,7 +82,6 @@ class Synthesize(Eventable):
 
     @staticmethod
     def from_event(event: Event) -> "Synthesize":
-        assert event.data is not None
         return Synthesize(
             text=event.data["text"],
             voice=SynthesizeVoice.from_dict(event.data.get("voice", {})),
@@ -115,9 +114,8 @@ class SynthesizeStart(Eventable):
 
     @staticmethod
     def from_event(event: Event) -> "SynthesizeStart":
-        data = event.data if event.data is not None else {}
         return SynthesizeStart(
-            voice=SynthesizeVoice.from_dict(data.get("voice", {})),
+            voice=SynthesizeVoice.from_dict(event.data.get("voice", {})),
             context=event.data.get("context"),
         )
 
@@ -138,7 +136,6 @@ class SynthesizeChunk(Eventable):
 
     @staticmethod
     def from_event(event: Event) -> "SynthesizeChunk":
-        assert event.data is not None
         return SynthesizeChunk(text=event.data["text"])
 
 

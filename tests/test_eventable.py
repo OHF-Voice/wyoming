@@ -3,6 +3,7 @@
 import importlib
 import inspect
 import pkgutil
+from dataclasses import MISSING, fields
 from typing import Any, Dict, List, Type
 
 import pytest
@@ -46,6 +47,14 @@ def all_unique_eventables() -> List[Type[Eventable]]:
 
 
 EVENTABLE_CLASSES = all_unique_eventables()
+NO_ARGS_CLASSES = [
+    cls
+    for cls in EVENTABLE_CLASSES
+    if all(
+        f.default is not MISSING or f.default_factory is not MISSING
+        for f in fields(cls)  # type: ignore[arg-type]
+    )
+]
 
 TEST_NAME = "test-name"
 TEST_TEXT = "test text"
@@ -285,6 +294,22 @@ TEST_DATA: Dict[str, Dict[str, Any]] = {
 def test_eventable_round_trip(cls: Type[Eventable]) -> None:
     init_kwargs = TEST_DATA[cls.__name__]
     instance = cls(**init_kwargs)
+
+    # Test event() method
+    event = instance.event()
+    assert event.type is not None, f"{cls} returned event with no type"
+
+    # Test is_type matches event.type
+    assert cls.is_type(event.type), f"{cls}.is_type failed for {event.type}"
+
+    # Test from_event returns an equivalent object
+    round_trip = cls.from_event(event)
+    assert round_trip == instance, f"{cls}.from_event failed to round-trip {instance}"
+
+
+@pytest.mark.parametrize("cls", NO_ARGS_CLASSES)
+def test_eventable_no_args(cls: Type[Eventable]) -> None:
+    instance = cls()
 
     # Test event() method
     event = instance.event()
