@@ -3,10 +3,6 @@ name: test
 
 # yamllint disable-line rule:truthy
 on:
-  push:
-    branches:
-      - main
-
   pull_request:
     branches:
       - main
