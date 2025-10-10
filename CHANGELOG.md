@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.8.0
+
+- Fix ZeroConf
+
 ## 1.7.2
 
 - Fix event data being `None`
