@@ -4,6 +4,7 @@ import io
 import logging
 import wave
 from pathlib import Path
+from typing import Set
 
 from flask import Response, jsonify, request
 
@@ -33,9 +34,17 @@ def main():
         if not uri:
             raise ValueError("URI is required")
 
+        wake_word_names: Set[str] = set()
+
         async with AsyncClient.from_uri(uri) as client:
             if args.wake_word_name:
-                await client.write_event(Detect(args.wake_word_name).event())
+                # From command-line
+                wake_word_names.add(args.wake_word_name)
+
+            wake_word_names.update(request.args.getlist("wake_words"))
+
+            if wake_word_names:
+                await client.write_event(Detect(list(wake_word_names)).event())
 
             with io.BytesIO(request.data) as wav_io:
                 with wave.open(wav_io, "rb") as wav_file:

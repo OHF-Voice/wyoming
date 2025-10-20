@@ -16,7 +16,7 @@ paths:
               schema:
   /api/detect-wake-word:
     post:
-      summary: 'Transcribe WAV data to text'
+      summary: 'Detect if wake word(s) are in WAV audio'
       requestBody:
         description: 'WAV data (16-bit 16Khz mono preferred)'
         required: true
@@ -28,9 +28,20 @@ paths:
       parameters:
         - in: query
           name: uri
-          description: 'URI of Wyoming ASR service'
+          description: 'URI of Wyoming wake service'
           schema:
             type: string
+        - in: query
+          name: wake_words
+          description: 'List of wake word names to check for'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+          example: ["okay_nabu"]
       responses:
         '200':
           description: OK

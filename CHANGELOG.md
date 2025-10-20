@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Add `wake_words` query parameter to wake server
+
 ## 1.8.0
 
 - Fix ZeroConf
