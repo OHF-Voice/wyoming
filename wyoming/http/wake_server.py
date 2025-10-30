@@ -39,7 +39,7 @@ def main():
         async with AsyncClient.from_uri(uri) as client:
             if args.wake_word_name:
                 # From command-line
-                wake_word_names.add(args.wake_word_name)
+                wake_word_names.update(args.wake_word_name)
 
             wake_word_names.update(request.args.getlist("wake_words"))
 
