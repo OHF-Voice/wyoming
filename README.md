@@ -29,8 +29,10 @@ Used in [Rhasspy](https://github.com/rhasspy/rhasspy3/) and [Home Assistant](htt
     * [Faster Whisper](https://github.com/rhasspy/wyoming-faster-whisper)
     * [Vosk](https://github.com/rhasspy/wyoming-vosk)
     * [Whisper.cpp](https://github.com/rhasspy/wyoming-whisper-cpp)
+    * [macos-speech-server](https://github.com/dokterbob/macos-speech-server)
 * Text-to-speech
     * [Piper](https://github.com/rhasspy/wyoming-piper)
+    * [macos-speech-server](https://github.com/dokterbob/macos-speech-server)
 * Intent handling
     * [handle-external](https://github.com/rhasspy/wyoming-handle-external)
 
