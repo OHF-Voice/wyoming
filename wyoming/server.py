@@ -40,6 +40,8 @@ class AsyncEventHandler(ABC):
 
                 if not (await self.handle_event(event)):
                     break
+        except (ConnectionResetError, ConnectionError, BrokenPipeError):
+            pass
         finally:
             await self.disconnect()
 
