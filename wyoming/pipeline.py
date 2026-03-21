@@ -15,6 +15,9 @@ class PipelineStage(str, Enum):
     WAKE = "wake"
     """Wake word detection."""
 
+    IDENTITY = "identity"
+    """Identity recognition."""
+
     ASR = "asr"
     """Speech-to-text (a.k.a. automated speech recognition)."""
 
@@ -41,6 +44,9 @@ class RunPipeline(Eventable):
     wake_word_name: Optional[str] = None
     """Name of wake word that triggered this pipeline."""
 
+    identity_name: Optional[str] = None
+    """Name of identity recognized during this pipeline."""
+
     restart_on_end: bool = False
     """True if pipeline should restart automatically after ending."""
 
@@ -57,6 +63,16 @@ class RunPipeline(Eventable):
         if self.start_stage == PipelineStage.WAKE:
             if self.end_stage not in (
                 PipelineStage.WAKE,
+                PipelineStage.IDENTITY,
+                PipelineStage.ASR,
+                PipelineStage.INTENT,
+                PipelineStage.HANDLE,
+                PipelineStage.TTS,
+            ):
+                end_valid = False
+        elif self.start_stage == PipelineStage.IDENTITY:
+            if self.end_stage not in (
+                PipelineStage.IDENTITY,
                 PipelineStage.ASR,
                 PipelineStage.INTENT,
                 PipelineStage.HANDLE,
@@ -66,6 +82,7 @@ class RunPipeline(Eventable):
         elif self.start_stage == PipelineStage.ASR:
             if self.end_stage not in (
                 PipelineStage.ASR,
+                PipelineStage.IDENTITY,
                 PipelineStage.INTENT,
                 PipelineStage.HANDLE,
                 PipelineStage.TTS,
@@ -110,6 +127,9 @@ class RunPipeline(Eventable):
         if self.wake_word_name is not None:
             data["wake_word_name"] = self.wake_word_name
 
+        if self.identity_name is not None:
+            data["identity_name"] = self.identity_name
+
         if self.wake_word_names:
             data["wake_word_names"] = self.wake_word_names
 
@@ -124,6 +144,7 @@ class RunPipeline(Eventable):
             start_stage=PipelineStage(event.data["start_stage"]),
             end_stage=PipelineStage(event.data["end_stage"]),
             wake_word_name=event.data.get("wake_word_name"),
+            identity_name=event.data.get("identity_name"),
             restart_on_end=event.data.get("restart_on_end", False),
             wake_word_names=event.data.get("wake_word_names"),
             announce_text=event.data.get("announce_text"),

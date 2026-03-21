@@ -17,6 +17,9 @@ from wyoming.info import (
     Attribution,
     HandleModel,
     HandleProgram,
+    Identity,
+    IdentityModel,
+    IdentityProgram,
     IntentModel,
     IntentProgram,
     MicProgram,
@@ -115,6 +118,25 @@ TEST_DATA: Dict[str, Dict[str, Any]] = {
                     )
                 ],
                 supports_synthesize_streaming=True,
+            )
+        ],
+        "identity": [
+            IdentityProgram(
+                name=TEST_NAME,
+                attribution=TEST_ATTRIBUTION,
+                installed=True,
+                description=TEST_DESCRIPTION,
+                version=TEST_VERSION,
+                models=[
+                    IdentityModel(
+                        name=TEST_NAME,
+                        attribution=TEST_ATTRIBUTION,
+                        installed=True,
+                        description=TEST_DESCRIPTION,
+                        version=TEST_VERSION,
+                        identities=[Identity(TEST_SPEAKER)],
+                    )
+                ],
             )
         ],
         "handle": [
@@ -268,6 +290,38 @@ TEST_DATA: Dict[str, Dict[str, Any]] = {
     "SynthesizeStop": {},
     "SynthesizeStopped": {},
     "Synthesize": {"text": TEST_TEXT, "voice": TEST_VOICE, "context": TEST_CONTEXT},
+    # identity
+    "Identify": {
+        "name": TEST_NAME,
+        "names": [TEST_SPEAKER],
+        "context": TEST_CONTEXT,
+    },
+    "Identified": {
+        "name": TEST_SPEAKER,
+        "confidence": 0.9,
+        "context": TEST_CONTEXT,
+    },
+    "NotIdentified": {"context": TEST_CONTEXT},
+    "Enroll": {
+        "name": TEST_SPEAKER,
+        "model": TEST_NAME,
+        "context": TEST_CONTEXT,
+    },
+    "Enrolled": {
+        "name": TEST_SPEAKER,
+        "model": TEST_NAME,
+        "context": TEST_CONTEXT,
+    },
+    "Delete": {
+        "name": TEST_SPEAKER,
+        "model": TEST_NAME,
+        "context": TEST_CONTEXT,
+    },
+    "Deleted": {
+        "name": TEST_SPEAKER,
+        "model": TEST_NAME,
+        "context": TEST_CONTEXT,
+    },
     # timers
     "TimerStarted": {"id": TEST_ID, "total_seconds": 100},
     "TimerUpdated": {"id": TEST_ID, "total_seconds": 100, "is_active": True},
@@ -286,7 +340,11 @@ TEST_DATA: Dict[str, Dict[str, Any]] = {
     "Error": {"text": TEST_TEXT},
     "Ping": {},
     "Pong": {},
-    "RunPipeline": {"start_stage": PipelineStage.ASR, "end_stage": PipelineStage.TTS},
+    "RunPipeline": {
+        "start_stage": PipelineStage.ASR,
+        "end_stage": PipelineStage.TTS,
+        "identity_name": TEST_SPEAKER,
+    },
 }
 
 

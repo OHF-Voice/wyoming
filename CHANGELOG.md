@@ -3,6 +3,10 @@
 ## Unreleased
 
 - Add `wake_words` query parameter to wake server
+- Add identity recognition protocol support
+- Add identity enrollment and deletion events
+- Add identity support to pipelines
+- Add `identity_name` to pipeline state
 
 ## 1.8.0
 

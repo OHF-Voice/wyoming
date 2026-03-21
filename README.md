@@ -31,6 +31,8 @@ Used in [Rhasspy](https://github.com/rhasspy/rhasspy3/) and [Home Assistant](htt
     * [Whisper.cpp](https://github.com/rhasspy/wyoming-whisper-cpp)
 * Text-to-speech
     * [Piper](https://github.com/rhasspy/wyoming-piper)
+* Identity recognition
+    * First planned implementation: pyannote-audio
 * Intent handling
     * [handle-external](https://github.com/rhasspy/wyoming-handle-external)
 
@@ -105,6 +107,17 @@ Describe available services.
             * `description` - human-readable description (string, optional)
             * `version` - version of the model (string, optional)
        * `supports_synthesize_streaming` - true if program can stream text chunks
+    * `identity` - list identity recognition services (optional)
+        * `models` - list of available models (required)
+            * `name` - unique name (required)
+            * `identities` - list of enrolled identities (optional)
+                * `name` - unique name of identity (required)
+            * `attribution` (required)
+                * `name` - name of creator (required)
+                * `url` - URL of creator (required)
+            * `installed` - true if currently installed (bool, required)
+            * `description` - human-readable description (string, optional)
+            * `version` - version of the model (string, optional)
     * `wake` - list wake word detection services( optional )
         * `models` - list of available models (required)
             * `name` - unique name (required)
@@ -212,6 +225,37 @@ Detect wake words in an audio stream.
     * `timestamp` - timestamp of audio chunk in milliseconds when detection occurred (int optional)
 * `not-detected` - response when audio stream ends without a detection
 
+### Identity Recognition
+
+Identify a person from an audio stream.
+
+* `identify` - request identity recognition from an audio stream
+    * `name` - name of model to use (string, optional)
+    * `names` - identity names to consider (list of string, optional)
+    * `context` - context from previous interactions (object, optional)
+* `identified` - response when an identity is recognized
+    * `name` - name of identified identity (string, required)
+    * `confidence` - confidence score (number, optional)
+    * `context` - context for next interactions (object, optional)
+* `not-identified` - response when audio stream ends without a recognized identity
+    * `context` - context for next interactions (object, optional)
+* `enroll` - request enrollment of a new identity from an audio stream
+    * `name` - name of identity to enroll (string, required)
+    * `model` - name of model to update (string, optional)
+    * `context` - context from previous interactions (object, optional)
+* `enrolled` - response when an identity has been enrolled
+    * `name` - name of enrolled identity (string, required)
+    * `model` - name of updated model (string, optional)
+    * `context` - context for next interactions (object, optional)
+* `delete` - request deletion of an enrolled identity
+    * `name` - name of identity to delete (string, required)
+    * `model` - name of model to update (string, optional)
+    * `context` - context from previous interactions (object, optional)
+* `deleted` - response when an identity has been deleted
+    * `name` - name of deleted identity (string, required)
+    * `model` - name of updated model (string, optional)
+    * `context` - context for next interactions (object, optional)
+
 ### Voice Activity Detection
 
 Detects speech and silence in an audio stream.
@@ -280,9 +324,13 @@ Pipelines are run on the server, but can be triggered remotely from the server a
 
 * `run-pipeline` - runs a pipeline on the server or asks the satellite to run it when possible
     * `start_stage` - pipeline stage to start at (string, required)
+        * Valid stages: `wake`, `identity`, `asr`, `intent`, `handle`, `tts`
     * `end_stage` - pipeline stage to end at (string, required)
+        * Valid stages: `wake`, `identity`, `asr`, `intent`, `handle`, `tts`
     * `wake_word_name` - name of detected wake word that started this pipeline (string, optional)
         * From client only
+    * `identity_name` - name of recognized identity collected during the pipeline (string, optional)
+        * Stored as the result of the `identity` stage for later stages to use
     * `wake_word_names` - names of wake words to listen for (list of string, optional)
         * From server only
         * `start_stage` must be "wake"
@@ -291,6 +339,11 @@ Pipelines are run on the server, but can be triggered remotely from the server a
         * `start_stage` must be "tts"
     * `restart_on_end` - true if the server should re-run the pipeline after it ends (boolean, default is false)
         * Only used for always-on streaming satellites
+
+Valid pipeline order is:
+`wake -> {identity, asr} -> intent -> handle -> tts`
+
+`identity` and `asr` are parallel audio-analysis stages. Stages may be skipped, but pipelines must still move forward through this order.
 
 ### Timers
 
