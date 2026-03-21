@@ -4,6 +4,7 @@
 
 - Add `wake_words` query parameter to wake server
 - Add identity recognition protocol support
+- Add identity enrollment and deletion events
 
 ## 1.8.0
 

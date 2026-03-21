@@ -239,6 +239,22 @@ Identify a person from an audio stream.
     * `context` - context for next interactions (object, optional)
 * `not-identified` - response when audio stream ends without a recognized identity
     * `context` - context for next interactions (object, optional)
+* `enroll` - request enrollment of a new identity from an audio stream
+    * `name` - name of identity to enroll (string, required)
+    * `model` - name of model to update (string, optional)
+    * `context` - context from previous interactions (object, optional)
+* `enrolled` - response when an identity has been enrolled
+    * `name` - name of enrolled identity (string, required)
+    * `model` - name of updated model (string, optional)
+    * `context` - context for next interactions (object, optional)
+* `delete` - request deletion of an enrolled identity
+    * `name` - name of identity to delete (string, required)
+    * `model` - name of model to update (string, optional)
+    * `context` - context from previous interactions (object, optional)
+* `deleted` - response when an identity has been deleted
+    * `name` - name of deleted identity (string, required)
+    * `model` - name of updated model (string, optional)
+    * `context` - context for next interactions (object, optional)
 
 ### Voice Activity Detection
 

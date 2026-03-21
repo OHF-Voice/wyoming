@@ -9,6 +9,10 @@ DOMAIN = "identity"
 _IDENTIFY_TYPE = "identify"
 _IDENTIFIED_TYPE = "identified"
 _NOT_IDENTIFIED_TYPE = "not-identified"
+_ENROLL_TYPE = "enroll"
+_ENROLLED_TYPE = "enrolled"
+_DELETE_TYPE = "delete"
+_DELETED_TYPE = "deleted"
 
 
 @dataclass
@@ -111,3 +115,148 @@ class NotIdentified(Eventable):
             return NotIdentified()
 
         return NotIdentified(context=event.data.get("context"))
+
+
+@dataclass
+class Enroll(Eventable):
+    """Request to enroll an identity from an audio stream.
+
+    Followed by AudioStart, AudioChunk+, AudioStop
+    """
+
+    name: str
+    """Name/id of identity to enroll."""
+
+    model: Optional[str] = None
+    """Name of identity recognition model to update."""
+
+    context: Optional[Dict[str, Any]] = None
+    """Context from previous interactions."""
+
+    @staticmethod
+    def is_type(event_type: str) -> bool:
+        return event_type == _ENROLL_TYPE
+
+    def event(self) -> Event:
+        data: Dict[str, Any] = {"name": self.name}
+        if self.model is not None:
+            data["model"] = self.model
+        if self.context is not None:
+            data["context"] = self.context
+
+        return Event(type=_ENROLL_TYPE, data=data)
+
+    @staticmethod
+    def from_event(event: Event) -> "Enroll":
+        data = event.data or {}
+        return Enroll(
+            name=data["name"],
+            model=data.get("model"),
+            context=data.get("context"),
+        )
+
+
+@dataclass
+class Enrolled(Eventable):
+    """Identity was enrolled."""
+
+    name: str
+    """Name/id of enrolled identity."""
+
+    model: Optional[str] = None
+    """Name of identity recognition model that was updated."""
+
+    context: Optional[Dict[str, Any]] = None
+    """Context for next interaction."""
+
+    @staticmethod
+    def is_type(event_type: str) -> bool:
+        return event_type == _ENROLLED_TYPE
+
+    def event(self) -> Event:
+        data: Dict[str, Any] = {"name": self.name}
+        if self.model is not None:
+            data["model"] = self.model
+        if self.context is not None:
+            data["context"] = self.context
+
+        return Event(type=_ENROLLED_TYPE, data=data)
+
+    @staticmethod
+    def from_event(event: Event) -> "Enrolled":
+        return Enrolled(
+            name=event.data["name"],
+            model=event.data.get("model"),
+            context=event.data.get("context"),
+        )
+
+
+@dataclass
+class Delete(Eventable):
+    """Request to delete an enrolled identity."""
+
+    name: str
+    """Name/id of identity to delete."""
+
+    model: Optional[str] = None
+    """Name of identity recognition model to update."""
+
+    context: Optional[Dict[str, Any]] = None
+    """Context from previous interactions."""
+
+    @staticmethod
+    def is_type(event_type: str) -> bool:
+        return event_type == _DELETE_TYPE
+
+    def event(self) -> Event:
+        data: Dict[str, Any] = {"name": self.name}
+        if self.model is not None:
+            data["model"] = self.model
+        if self.context is not None:
+            data["context"] = self.context
+
+        return Event(type=_DELETE_TYPE, data=data)
+
+    @staticmethod
+    def from_event(event: Event) -> "Delete":
+        data = event.data or {}
+        return Delete(
+            name=data["name"],
+            model=data.get("model"),
+            context=data.get("context"),
+        )
+
+
+@dataclass
+class Deleted(Eventable):
+    """Identity was deleted."""
+
+    name: str
+    """Name/id of deleted identity."""
+
+    model: Optional[str] = None
+    """Name of identity recognition model that was updated."""
+
+    context: Optional[Dict[str, Any]] = None
+    """Context for next interaction."""
+
+    @staticmethod
+    def is_type(event_type: str) -> bool:
+        return event_type == _DELETED_TYPE
+
+    def event(self) -> Event:
+        data: Dict[str, Any] = {"name": self.name}
+        if self.model is not None:
+            data["model"] = self.model
+        if self.context is not None:
+            data["context"] = self.context
+
+        return Event(type=_DELETED_TYPE, data=data)
+
+    @staticmethod
+    def from_event(event: Event) -> "Deleted":
+        return Deleted(
+            name=event.data["name"],
+            model=event.data.get("model"),
+            context=event.data.get("context"),
+        )

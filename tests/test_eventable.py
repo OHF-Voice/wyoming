@@ -302,6 +302,26 @@ TEST_DATA: Dict[str, Dict[str, Any]] = {
         "context": TEST_CONTEXT,
     },
     "NotIdentified": {"context": TEST_CONTEXT},
+    "Enroll": {
+        "name": TEST_SPEAKER,
+        "model": TEST_NAME,
+        "context": TEST_CONTEXT,
+    },
+    "Enrolled": {
+        "name": TEST_SPEAKER,
+        "model": TEST_NAME,
+        "context": TEST_CONTEXT,
+    },
+    "Delete": {
+        "name": TEST_SPEAKER,
+        "model": TEST_NAME,
+        "context": TEST_CONTEXT,
+    },
+    "Deleted": {
+        "name": TEST_SPEAKER,
+        "model": TEST_NAME,
+        "context": TEST_CONTEXT,
+    },
     # timers
     "TimerStarted": {"id": TEST_ID, "total_seconds": 100},
     "TimerUpdated": {"id": TEST_ID, "total_seconds": 100, "is_active": True},
