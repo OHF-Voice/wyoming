@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Add `wake_words` query parameter to wake server
+- Add identity recognition protocol support
 
 ## 1.8.0
 

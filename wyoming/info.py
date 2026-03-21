@@ -118,6 +118,33 @@ class TtsProgram(Artifact):
 
 
 @dataclass
+class Identity(DataClassJsonMixin):
+    """Enrolled identity."""
+
+    name: str
+    """Name/id of identity."""
+
+
+@dataclass
+class IdentityModel(Artifact):
+    """Identity recognition model."""
+
+    identities: Optional[List[Identity]] = None
+    """List of enrolled identities."""
+
+
+@dataclass
+class IdentityProgram(Artifact):
+    """Identity recognition service."""
+
+    models: List[IdentityModel]
+    """List of available models."""
+
+
+# -----------------------------------------------------------------------------
+
+
+@dataclass
 class HandleModel(Artifact):
     """Intent handling model."""
 
@@ -235,6 +262,9 @@ class Info(Eventable):
     tts: List[TtsProgram] = field(default_factory=list)
     """Text-to-speech services."""
 
+    identity: List[IdentityProgram] = field(default_factory=list)
+    """Identity recognition services."""
+
     handle: List[HandleProgram] = field(default_factory=list)
     """Intent handling services."""
 
@@ -261,6 +291,7 @@ class Info(Eventable):
         data: Dict[str, Any] = {
             "asr": [p.to_dict() for p in self.asr],
             "tts": [p.to_dict() for p in self.tts],
+            "identity": [p.to_dict() for p in self.identity],
             "handle": [p.to_dict() for p in self.handle],
             "intent": [p.to_dict() for p in self.intent],
             "wake": [p.to_dict() for p in self.wake],
@@ -283,6 +314,9 @@ class Info(Eventable):
         return Info(
             asr=[AsrProgram.from_dict(d) for d in event.data.get("asr", [])],
             tts=[TtsProgram.from_dict(d) for d in event.data.get("tts", [])],
+            identity=[
+                IdentityProgram.from_dict(d) for d in event.data.get("identity", [])
+            ],
             handle=[HandleProgram.from_dict(d) for d in event.data.get("handle", [])],
             intent=[IntentProgram.from_dict(d) for d in event.data.get("intent", [])],
             wake=[WakeProgram.from_dict(d) for d in event.data.get("wake", [])],

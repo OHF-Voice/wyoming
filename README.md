@@ -31,6 +31,8 @@ Used in [Rhasspy](https://github.com/rhasspy/rhasspy3/) and [Home Assistant](htt
     * [Whisper.cpp](https://github.com/rhasspy/wyoming-whisper-cpp)
 * Text-to-speech
     * [Piper](https://github.com/rhasspy/wyoming-piper)
+* Identity recognition
+    * First planned implementation: pyannote-audio
 * Intent handling
     * [handle-external](https://github.com/rhasspy/wyoming-handle-external)
 
@@ -105,6 +107,17 @@ Describe available services.
             * `description` - human-readable description (string, optional)
             * `version` - version of the model (string, optional)
        * `supports_synthesize_streaming` - true if program can stream text chunks
+    * `identity` - list identity recognition services (optional)
+        * `models` - list of available models (required)
+            * `name` - unique name (required)
+            * `identities` - list of enrolled identities (optional)
+                * `name` - unique name of identity (required)
+            * `attribution` (required)
+                * `name` - name of creator (required)
+                * `url` - URL of creator (required)
+            * `installed` - true if currently installed (bool, required)
+            * `description` - human-readable description (string, optional)
+            * `version` - version of the model (string, optional)
     * `wake` - list wake word detection services( optional )
         * `models` - list of available models (required)
             * `name` - unique name (required)
@@ -211,6 +224,21 @@ Detect wake words in an audio stream.
     * `name` - name of wake word that was detected (int, optional)
     * `timestamp` - timestamp of audio chunk in milliseconds when detection occurred (int optional)
 * `not-detected` - response when audio stream ends without a detection
+
+### Identity Recognition
+
+Identify a person from an audio stream.
+
+* `identify` - request identity recognition from an audio stream
+    * `name` - name of model to use (string, optional)
+    * `names` - identity names to consider (list of string, optional)
+    * `context` - context from previous interactions (object, optional)
+* `identified` - response when an identity is recognized
+    * `name` - name of identified identity (string, required)
+    * `confidence` - confidence score (number, optional)
+    * `context` - context for next interactions (object, optional)
+* `not-identified` - response when audio stream ends without a recognized identity
+    * `context` - context for next interactions (object, optional)
 
 ### Voice Activity Detection
 
