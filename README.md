@@ -324,9 +324,13 @@ Pipelines are run on the server, but can be triggered remotely from the server a
 
 * `run-pipeline` - runs a pipeline on the server or asks the satellite to run it when possible
     * `start_stage` - pipeline stage to start at (string, required)
+        * Valid stages: `wake`, `identity`, `asr`, `intent`, `handle`, `tts`
     * `end_stage` - pipeline stage to end at (string, required)
+        * Valid stages: `wake`, `identity`, `asr`, `intent`, `handle`, `tts`
     * `wake_word_name` - name of detected wake word that started this pipeline (string, optional)
         * From client only
+    * `identity_name` - name of recognized identity collected during the pipeline (string, optional)
+        * Stored as the result of the `identity` stage for later stages to use
     * `wake_word_names` - names of wake words to listen for (list of string, optional)
         * From server only
         * `start_stage` must be "wake"
@@ -335,6 +339,11 @@ Pipelines are run on the server, but can be triggered remotely from the server a
         * `start_stage` must be "tts"
     * `restart_on_end` - true if the server should re-run the pipeline after it ends (boolean, default is false)
         * Only used for always-on streaming satellites
+
+Valid pipeline order is:
+`wake -> {identity, asr} -> intent -> handle -> tts`
+
+`identity` and `asr` are parallel audio-analysis stages. Stages may be skipped, but pipelines must still move forward through this order.
 
 ### Timers
 

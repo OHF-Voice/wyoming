@@ -17,11 +17,11 @@ from wyoming.info import (
     Attribution,
     HandleModel,
     HandleProgram,
-    IntentModel,
-    IntentProgram,
     Identity,
     IdentityModel,
     IdentityProgram,
+    IntentModel,
+    IntentProgram,
     MicProgram,
     Satellite,
     SndProgram,
@@ -340,7 +340,11 @@ TEST_DATA: Dict[str, Dict[str, Any]] = {
     "Error": {"text": TEST_TEXT},
     "Ping": {},
     "Pong": {},
-    "RunPipeline": {"start_stage": PipelineStage.ASR, "end_stage": PipelineStage.TTS},
+    "RunPipeline": {
+        "start_stage": PipelineStage.ASR,
+        "end_stage": PipelineStage.TTS,
+        "identity_name": TEST_SPEAKER,
+    },
 }
 
 
