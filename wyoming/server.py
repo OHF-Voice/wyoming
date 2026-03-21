@@ -42,6 +42,7 @@ class AsyncEventHandler(ABC):
                     break
         finally:
             await self.disconnect()
+            self.writer.close()
 
     async def disconnect(self) -> None:
         """Called when client disconnects."""
