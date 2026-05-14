@@ -135,6 +135,7 @@ TEST_DATA: Dict[str, Dict[str, Any]] = {
                     )
                 ],
                 supports_handled_streaming=True,
+                supports_home_control=True,
             )
         ],
         "intent": [
@@ -250,6 +251,8 @@ TEST_DATA: Dict[str, Dict[str, Any]] = {
         "context": TEST_CONTEXT,
     },
     "NotRecognized": {"text": TEST_TEXT, "context": TEST_CONTEXT},
+    "IntentsStart": {"context": TEST_CONTEXT},
+    "IntentsStop": {"context": TEST_CONTEXT},
     # handle
     "Handled": {
         "text": TEST_TEXT,
@@ -287,6 +290,11 @@ TEST_DATA: Dict[str, Dict[str, Any]] = {
     "Ping": {},
     "Pong": {},
     "RunPipeline": {"start_stage": PipelineStage.ASR, "end_stage": PipelineStage.TTS},
+    "UserEvent": {
+        "name": TEST_NAME,
+        "data": {TEST_ID: TEST_TEXT},
+        "context": TEST_CONTEXT,
+    },
 }
 
 
