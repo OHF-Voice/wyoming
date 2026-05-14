@@ -126,6 +126,7 @@ Describe available services.
             * `description` - human-readable description (string, optional)
             * `version` - version of the model (string, optional)
         * `supports_handled_streaming` - true if program can stream response chunks
+        * `supports_home_control` - true if program may execute home control actions during handling
     * `intent` - list intent recognition services (optional)
         * `models` - list of available models (required)
             * `name` - unique name (required)
