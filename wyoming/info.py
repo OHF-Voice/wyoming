@@ -135,6 +135,9 @@ class HandleProgram(Artifact):
     supports_handled_streaming: bool = False
     """True if handled response streaming events are supported."""
 
+    supports_home_control: bool = False
+    """True if the service may execute home control actions during handling."""
+
 
 # -----------------------------------------------------------------------------
 
