@@ -238,6 +238,14 @@ Recognizes intents from text.
 * `not-recognized` - response indicating no intent was recognized
     * `text` - response for user (string, optional)
     * `context` - context for next interactions (object, optional)
+    
+Multiple intents:
+
+1. `intents-start` - signals one or more intents will follow
+    * `context` - context from previous interactions (object, optional)
+2. `intent` - one or more intents sent as normal
+    * Older clients will only process the first intent
+3. `intents-stop` - end of intents
 
 ### Intent Handling
 

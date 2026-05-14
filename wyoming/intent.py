@@ -9,6 +9,8 @@ DOMAIN = "intent"
 _RECOGNIZE_TYPE = "recognize"
 _INTENT_TYPE = "intent"
 _NOT_RECOGNIZED_TYPE = "not-recognized"
+_INTENTS_START_TYPE = "intents-start"
+_INTENTS_STOP_TYPE = "intents-stop"
 
 
 @dataclass
@@ -137,3 +139,69 @@ class NotRecognized(Eventable):
         return NotRecognized(
             text=event.data.get("text"), context=event.data.get("context")
         )
+
+
+@dataclass
+class IntentsStart(Eventable):
+    """Start of one or more intents.
+
+    Event flow:
+    intents-start
+    intent
+    [intent]...
+    intents-stop
+    """
+
+    context: Optional[Dict[str, Any]] = None
+    """Context for next interaction."""
+
+    @staticmethod
+    def is_type(event_type: str) -> bool:
+        return event_type == _INTENTS_START_TYPE
+
+    def event(self) -> Event:
+        data: Dict[str, Any] = {}
+        if self.context is not None:
+            data["context"] = self.context
+
+        return Event(type=_INTENTS_START_TYPE, data=data)
+
+    @staticmethod
+    def from_event(event: Event) -> "IntentsStart":
+        if not event.data:
+            return IntentsStart()
+
+        return IntentsStart(context=event.data.get("context"))
+
+
+@dataclass
+class IntentsStop(Eventable):
+    """End of intent series.
+
+    Event flow:
+    intents-start
+    intent
+    [intent]...
+    intents-stop
+    """
+
+    context: Optional[Dict[str, Any]] = None
+    """Context for next interaction."""
+
+    @staticmethod
+    def is_type(event_type: str) -> bool:
+        return event_type == _INTENTS_STOP_TYPE
+
+    def event(self) -> Event:
+        data: Dict[str, Any] = {}
+        if self.context is not None:
+            data["context"] = self.context
+
+        return Event(type=_INTENTS_STOP_TYPE, data=data)
+
+    @staticmethod
+    def from_event(event: Event) -> "IntentsStop":
+        if not event.data:
+            return IntentsStop()
+
+        return IntentsStop(context=event.data.get("context"))
