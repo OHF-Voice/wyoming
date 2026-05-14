@@ -1,6 +1,6 @@
 # Wyoming Protocol
 
-A peer-to-peer protocol for voice assistants (basically [JSONL](https://jsonlines.org/) + PCM audio)
+A peer-to-peer TCP protocol for voice assistants (basically [JSONL](https://jsonlines.org/) + PCM audio)
 
 ``` text
 { "type": "...", "data": { ... }, "data_length": ..., "payload_length": ... }\n
@@ -8,14 +8,12 @@ A peer-to-peer protocol for voice assistants (basically [JSONL](https://jsonline
 <payload_length bytes (optional)>
 ```
 
-Used in [Rhasspy](https://github.com/rhasspy/rhasspy3/) and [Home Assistant](https://www.home-assistant.io/integrations/wyoming) for communication with voice services.
+Used in [Home Assistant](https://www.home-assistant.io/integrations/wyoming) for communication with voice services.
 
 [![An open standard from the Open Home Foundation](https://www.openhomefoundation.org/badges/ohf-open-standard.png)](https://www.openhomefoundation.org/)
 
 ## Wyoming Projects
 
-* Voice satellites
-    * [Satellite](https://github.com/rhasspy/wyoming-satellite) for Home Assistant 
 * Audio input/output
     * [mic-external](https://github.com/rhasspy/wyoming-mic-external)
     * [snd-external](https://github.com/rhasspy/wyoming-snd-external)
