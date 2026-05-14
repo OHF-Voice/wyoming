@@ -322,6 +322,13 @@ Pipelines are run on the server, but can be triggered remotely from the server a
 * `timer-finished` - timer finished without being cancelled
     * `id` - unique id of timer (string, required)
 
+### Miscellaneous
+
+* `user-event` - user-defined event
+    * `name` - name of the user event type (string, required)
+    * `data` - data for user event (object, optional)
+    * `context` - context from previous interactions (object, optional)
+
 ## Event Flow
 
 * &rarr; is an event from client to server
@@ -409,6 +416,15 @@ Streaming:
 
 1. &rarr; `recognize` (required)
 2. &larr; `intent` if successful
+3. &larr; `not-recognized` if not successful
+
+For multiple intents:
+
+1. &rarr; `recognize` (required)
+2. &rarr; `intents-start` if successful
+2. &rarr; `intent` if successful
+    * One or more intents
+2. &rarr; `intents-end` if successful
 3. &larr; `not-recognized` if not successful
 
 ### Intent Handling
