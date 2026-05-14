@@ -1,7 +1,10 @@
 # Changelog
 
-## Unreleased
+## 1.9.0
 
+- Add `intents-start` and `intents-end` to allow for multiple intents to be recognized
+- Add `supports_home_control` flag to indicate an intent handling program may execute home control actions
+- Add `user-event` for user-defined events
 - Add `wake_words` query parameter to wake server
 
 ## 1.8.0
