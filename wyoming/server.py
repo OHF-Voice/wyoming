@@ -1,5 +1,6 @@
 import asyncio
 import contextlib
+import logging
 import signal
 import sys
 from abc import ABC, abstractmethod
@@ -9,6 +10,8 @@ from typing import Callable, Dict, Optional, Union
 from urllib.parse import urlparse
 
 from .event import Event, async_get_stdin, async_read_event, async_write_event
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class AsyncEventHandler(ABC):
@@ -42,8 +45,6 @@ class AsyncEventHandler(ABC):
 
                 if not (await self.handle_event(event)):
                     break
-        except (ConnectionResetError, ConnectionError, BrokenPipeError):
-            pass
         finally:
             await self.disconnect()
             self.writer.close()
@@ -102,7 +103,18 @@ class AsyncServer(ABC):
         handler = handler_factory(reader, writer)
         task = asyncio.create_task(handler.run(), name="wyoming event handler")
         self._handlers[task] = handler
-        task.add_done_callback(lambda t: self._handlers.pop(t, None))
+        task.add_done_callback(self._handler_done)
+
+    def _handler_done(self, task: asyncio.Task) -> None:
+        self._handlers.pop(task, None)
+        if task.cancelled():
+            return
+        exc = task.exception()
+        if exc is None or isinstance(
+            exc, (ConnectionError, asyncio.IncompleteReadError)
+        ):
+            return
+        _LOGGER.exception("Unhandled exception in Wyoming event handler", exc_info=exc)
 
     async def start(self, handler_factory: HandlerFactory) -> None:
         """Start server without blocking."""
