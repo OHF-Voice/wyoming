@@ -134,7 +134,7 @@ async def async_write_event(event: Event, writer: asyncio.StreamWriter):
             writer.write(event.payload)
 
         await writer.drain()
-    except (KeyboardInterrupt, ConnectionResetError, ConnectionError, BrokenPipeError):
+    except KeyboardInterrupt:
         pass
 
 
