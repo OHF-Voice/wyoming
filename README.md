@@ -185,6 +185,8 @@ Synthesize audio from text.
         * `name` - name of voice (string, optional)
         * `language` - language of voice (string, optional)
         * `speaker` - speaker of voice (string, optional)
+    * `text_format` - format of text (string, optional)
+        * Can be "text", "ssml", or something else
         
 Streaming:
 
@@ -194,6 +196,8 @@ Streaming:
         * `name` - name of voice (string, optional)
         * `language` - language of voice (string, optional)
         * `speaker` - speaker of voice (string, optional)
+    * `text_format` - format of text (string, optional)
+        * Can be "text", "ssml", or something else
 2. `synthesize-chunk`
     * `text` - part of text to synthesize (string, required)
 3. Original `synthesize` message must be sent for backwards compatibility
