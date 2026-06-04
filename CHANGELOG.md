@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Add `text_format` so `synthesize` and `synthesize-start` (e.g., for "ssml")
+
 ## 1.9.0
 
 - Add `intents-start` and `intents-end` to allow for multiple intents to be recognized

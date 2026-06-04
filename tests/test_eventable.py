@@ -266,11 +266,20 @@ TEST_DATA: Dict[str, Dict[str, Any]] = {
         "context": TEST_CONTEXT,
     },
     # tts
-    "SynthesizeStart": {"voice": TEST_VOICE, "context": TEST_CONTEXT},
+    "SynthesizeStart": {
+        "voice": TEST_VOICE,
+        "text_format": "ssml",
+        "context": TEST_CONTEXT,
+    },
     "SynthesizeChunk": {"text": TEST_TEXT},
     "SynthesizeStop": {},
     "SynthesizeStopped": {},
-    "Synthesize": {"text": TEST_TEXT, "voice": TEST_VOICE, "context": TEST_CONTEXT},
+    "Synthesize": {
+        "text": TEST_TEXT,
+        "voice": TEST_VOICE,
+        "text_format": "text",
+        "context": TEST_CONTEXT,
+    },
     # timers
     "TimerStarted": {"id": TEST_ID, "total_seconds": 100},
     "TimerUpdated": {"id": TEST_ID, "total_seconds": 100, "is_active": True},
