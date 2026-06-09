@@ -88,34 +88,34 @@ def tostereo(
 
 
 def _get_sample32(fragment: BufferType, width: int, index: int) -> int:
+    """Extract a sample and convert it to 32-bit representation."""
     if width == 1:
-        return fragment[index]
+        # Use struct to handle signed byte properly
+        return struct.unpack_from('b', fragment, index)[0] << 24
 
-    if width == 2:
-        return (fragment[index] << 8) + (fragment[index + 1])
+    elif width == 2:
+        # Use struct to handle signed 16-bit with native byte order
+        return struct.unpack_from('h', fragment, index)[0] << 16
 
-    if width == 4:
-        return (
-            (fragment[index] << 24)
-            + (fragment[index + 1] << 16)
-            + (fragment[index + 2] << 8)
-            + fragment[index + 3]
-        )
+    elif width == 4:
+        # Use struct to handle signed 32-bit with native byte order
+        return struct.unpack_from('i', fragment, index)[0]
 
     raise ValueError(f"Invalid width: {width}")
 
-
 def _set_sample32(fragment: bytearray, width: int, index: int, sample: int) -> None:
+    """Set a sample from 32-bit representation."""
     if width == 1:
-        fragment[index] = sample & 0x000000FF
+        # Scale down from 32-bit and pack as signed byte
+        val = sample >> 24
+        struct.pack_into('b', fragment, index, val)
     elif width == 2:
-        fragment[index] = (sample >> 8) & 0x000000FF
-        fragment[index + 1] = sample & 0x000000FF
+        # Scale down from 32-bit and pack as signed 16-bit
+        val = sample >> 16
+        struct.pack_into('h', fragment, index, val)
     elif width == 4:
-        fragment[index] = sample >> 24
-        fragment[index + 1] = (sample >> 16) & 0x000000FF
-        fragment[index + 2] = (sample >> 8) & 0x000000FF
-        fragment[index + 3] = sample & 0x000000FF
+        # Pack as signed 32-bit
+        struct.pack_into('i', fragment, index, sample)
     else:
         raise ValueError(f"Invalid width: {width}")
 
