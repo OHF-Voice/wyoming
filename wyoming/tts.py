@@ -57,7 +57,7 @@ class SynthesizeVoice:
             )
 
         if "language" in voice:
-            return SynthesizeVoice(name=voice["language"])
+            return SynthesizeVoice(language=voice["language"])
 
         return None
 

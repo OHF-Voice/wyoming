@@ -106,7 +106,7 @@ Describe available services.
             * `description` - human-readable description (string, optional)
             * `version` - version of the model (string, optional)
        * `supports_synthesize_streaming` - true if program can stream text chunks
-    * `wake` - list wake word detection services( optional )
+    * `wake` - list wake word detection services (optional)
         * `models` - list of available models (required)
             * `name` - unique name (required)
             * `languages` - supported languages by model (list of string, required)
@@ -141,7 +141,7 @@ Describe available services.
     * `satellite` - information about voice satellite (optional)
         * `area` - name of area where satellite is located (string, optional)
         * `has_vad` - true if the end of voice commands will be detected locally (boolean, optional)
-        * `active_wake_words` - list of wake words that are actively being listend for (list of string, optional)
+        * `active_wake_words` - list of wake words that are actively being listened for (list of string, optional)
         * `max_active_wake_words` - maximum number of local wake words that can be run simultaneously (number, optional)
         * `supports_trigger` - true if satellite supports remotely-triggered pipelines
     * `mic` - list of audio input services (optional)
@@ -216,8 +216,8 @@ Detect wake words in an audio stream.
 * `detect` - request detection of specific wake word(s)
     * `names` - wake word names to detect (list of string, optional)
 * `detection` - response when detection occurs
-    * `name` - name of wake word that was detected (int, optional)
-    * `timestamp` - timestamp of audio chunk in milliseconds when detection occurred (int optional)
+    * `name` - name of wake word that was detected (string, optional)
+    * `timestamp` - timestamp of audio chunk in milliseconds when detection occurred (int, optional)
 * `not-detected` - response when audio stream ends without a detection
 
 ### Voice Activity Detection
@@ -384,7 +384,7 @@ Streaming:
 Streaming:
 
 1. &rarr; `synthesize-start` event (required)
-3. &rarr; `synthesize-chunk` event (required)
+2. &rarr; `synthesize-chunk` event (required)
     * Text chunks are sent as they're produced
 3. &larr; `audio-start`, `audio-chunk` (one or more), `audio-stop`
     * Audio chunks are sent as they're produced with start/stop
@@ -428,11 +428,11 @@ Streaming:
 For multiple intents:
 
 1. &rarr; `recognize` (required)
-2. &rarr; `intents-start` if successful
-2. &rarr; `intent` if successful
+2. &larr; `intents-start` if successful
+3. &larr; `intent` if successful
     * One or more intents
-2. &rarr; `intents-end` if successful
-3. &larr; `not-recognized` if not successful
+4. &larr; `intents-stop` if successful
+5. &larr; `not-recognized` if not successful
 
 ### Intent Handling
 

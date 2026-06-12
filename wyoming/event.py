@@ -161,7 +161,11 @@ def read_event(reader: Optional[BinaryIO] = None) -> Optional[Event]:
             # Merge data
             data_bytes = reader.read(data_length)
             while len(data_bytes) < data_length:
-                data_bytes += reader.read(data_length - len(data_bytes))
+                chunk = reader.read(data_length - len(data_bytes))
+                if not chunk:
+                    # Stream closed before all data was read
+                    return None
+                data_bytes += chunk
 
             data_dict = event_dict.get(_DATA, {})
             data_dict.update(json.loads(data_bytes))
@@ -170,10 +174,14 @@ def read_event(reader: Optional[BinaryIO] = None) -> Optional[Event]:
         payload_length = event_dict.get(_PAYLOAD_LENGTH)
 
         payload: Optional[bytes] = None
-        if payload_length is not None:
+        if (payload_length is not None) and (payload_length > 0):
             payload = reader.read(payload_length)
             while len(payload) < payload_length:
-                payload += reader.read(payload_length - len(payload))
+                chunk = reader.read(payload_length - len(payload))
+                if not chunk:
+                    # Stream closed before all data was read
+                    return None
+                payload += chunk
 
         return Event(
             type=event_dict[_TYPE], data=event_dict.get(_DATA, {}), payload=payload
