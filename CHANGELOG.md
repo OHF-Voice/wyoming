@@ -3,6 +3,8 @@
 ## Unreleased
 
 - Add `text_format` so `synthesize` and `synthesize-start` (e.g., for "ssml")
+- Add VAD and audio preferences to ASR program
+- Add `vad_sensitivity` to `transcribe`
 
 ## 1.9.0
 

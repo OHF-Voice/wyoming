@@ -90,6 +90,9 @@ Describe available services.
             * `description` - human-readable description (string, optional)
             * `version` - version of the model (string, optional)
         * `supports_transcript_streaming` - true if program can stream transcript chunks
+        * `requires_external_vad` - true if ASR program needs external VAD to detect end of voice commands
+        * `prefers_auto_gain_enabled` - true if input audio should have auto gain enabled
+        * `prefers_noise_reduction_enabled` - true if input audio should have noise reduction enabled
     * `tts` - list text to speech services (optional)
         * `models` - list of available models
             * `name` - unique name (required)
@@ -160,6 +163,8 @@ Transcribe audio into text.
     * `name` - name of model to use (string, optional)
     * `language` - language of spoken audio (string, optional)
     * `context` - context from previous interactions (object, optional)
+    * `vad_sensitivity` - how quickly end of voice command is detected (string, optional)
+        * Only if ASR program has `requires_external_vad` as `False`
 * `transcript` - response with transcription
     * `text` - text transcription of spoken audio (string, required)
     * `language` - language of transcript (string, optional)

@@ -1,7 +1,8 @@
 """Speech to text."""
 
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from enum import Enum
+from typing import Any, Dict, Optional, Union
 
 from .event import Event, Eventable
 
@@ -11,6 +12,14 @@ _TRANSCRIBE_TYPE = "transcribe"
 _TRANSCRIPT_START_TYPE = "transcript-start"
 _TRANSCRIPT_CHUNK_TYPE = "transcript-chunk"
 _TRANSCRIPT_STOP_TYPE = "transcript-stop"
+
+
+class VadSensitivity(str, Enum):
+    """How quickly the end of a voice command is detected."""
+
+    DEFAULT = "default"
+    RELAXED = "relaxed"
+    AGGRESSIVE = "aggressive"
 
 
 @dataclass
@@ -65,6 +74,9 @@ class Transcribe(Eventable):
     context: Optional[Dict[str, Any]] = None
     """Context from previous interactions."""
 
+    vad_sensitivity: Optional[Union[str, VadSensitivity]] = None
+    """How quickly the end of a voice command is detected."""
+
     @staticmethod
     def is_type(event_type: str) -> bool:
         return event_type == _TRANSCRIBE_TYPE
@@ -80,15 +92,30 @@ class Transcribe(Eventable):
         if self.context is not None:
             data["context"] = self.context
 
+        if isinstance(self.vad_sensitivity, VadSensitivity):
+            data["vad_sensitivity"] = self.vad_sensitivity.value
+        elif self.vad_sensitivity is not None:
+            data["vad_sensitivity"] = self.vad_sensitivity
+
         return Event(type=_TRANSCRIBE_TYPE, data=data)
 
     @staticmethod
     def from_event(event: Event) -> "Transcribe":
         data = event.data or {}
+
+        vad_sensitivity: Optional[Union[str, VadSensitivity]] = None
+        vad_sensitivity_str = data.get("vad_sensitivity")
+        if vad_sensitivity_str is not None:
+            try:
+                vad_sensitivity = VadSensitivity(vad_sensitivity_str)
+            except ValueError:
+                vad_sensitivity = vad_sensitivity_str
+
         return Transcribe(
             name=data.get("name"),
             language=data.get("language"),
             context=data.get("context"),
+            vad_sensitivity=vad_sensitivity,
         )
 
 

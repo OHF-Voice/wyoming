@@ -94,6 +94,9 @@ TEST_DATA: Dict[str, Dict[str, Any]] = {
                     )
                 ],
                 supports_transcript_streaming=True,
+                requires_external_vad=False,
+                prefers_auto_gain_enabled=False,
+                prefers_noise_reduction_enabled=False,
             )
         ],
         "tts": [
@@ -231,6 +234,7 @@ TEST_DATA: Dict[str, Dict[str, Any]] = {
         "name": TEST_NAME,
         "context": TEST_CONTEXT,
         "language": TEST_LANGUAGE,
+        "vad_sensitivity": "default",
     },
     "Transcript": {
         "text": TEST_TEXT,

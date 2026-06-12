@@ -80,6 +80,15 @@ class AsrProgram(Artifact):
     supports_transcript_streaming: bool = False
     """True if transcript streaming events are supported."""
 
+    requires_external_vad: bool = True
+    """True if ASR program needs an external VAD to detect the end of voice commands."""
+
+    prefers_auto_gain_enabled: bool = True
+    """True if input audio should adjust gain automatically for best results."""
+
+    prefers_noise_reduction_enabled: bool = True
+    """True if input audio should apply noise reduction for best results."""
+
 
 # -----------------------------------------------------------------------------
 
