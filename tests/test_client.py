@@ -9,6 +9,7 @@ from wyoming.client import (
     AsyncStdioClient,
     AsyncTcpClient,
     AsyncUnixClient,
+    AsyncWebSocketClient,
 )
 
 
@@ -37,3 +38,11 @@ def test_from_uri() -> None:
     unix_client = AsyncClient.from_uri("unix:///path/to/socket")
     assert isinstance(unix_client, AsyncUnixClient)
     assert unix_client.socket_path == Path("/path/to/socket")
+
+    ws_client = AsyncClient.from_uri("ws://127.0.0.1:5000")
+    assert isinstance(ws_client, AsyncWebSocketClient)
+    assert ws_client.uri == "ws://127.0.0.1:5000"
+
+    wss_client = AsyncClient.from_uri("wss://example.com/stream")
+    assert isinstance(wss_client, AsyncWebSocketClient)
+    assert wss_client.uri == "wss://example.com/stream"

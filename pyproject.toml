@@ -3,7 +3,7 @@ name = "wyoming"
 version = "1.9.0"
 description = "Peer-to-peer protocol for voice assistants"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.8.1"
 license = {text = "MIT"}
 authors = [
     {name = "Michael Hansen", email = "mike@rhasspy.org"}
@@ -62,6 +62,9 @@ dev = [
 ]
 zeroconf = [
     "zeroconf==0.88.0"
+]
+websocket = [
+    "websockets>=12,<17"
 ]
 http = [
     "Flask[async]==3.0.2",
