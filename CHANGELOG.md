@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.10.0
 
 - Add VAD and audio preferences to ASR program
 - Add `select-program` to choose a program by name for the lifetime of a connection (defaults to the first program of each type)
