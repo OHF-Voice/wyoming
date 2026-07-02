@@ -41,6 +41,16 @@ paths:
           description: 'Language to use for transcription'
           schema:
             type: string
+        - in: query
+          name: transcript_names
+          description: 'Comma-separated list of unique names that should bias the ASR transcription (takes priority over terms)'
+          schema:
+            type: string
+        - in: query
+          name: transcript_terms
+          description: 'Comma-separated list of domain-specific terms that should bias the ASR transcription'
+          schema:
+            type: string
       responses:
         '200':
           description: OK

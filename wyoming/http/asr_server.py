@@ -4,6 +4,7 @@ import io
 import logging
 import wave
 from pathlib import Path
+from typing import List, Optional
 
 from flask import Response, jsonify, request
 
@@ -37,9 +38,28 @@ def main():
         model_name = request.args.get("model", args.model)
         language = request.args.get("language", args.model)
 
+        transcript_names: Optional[List[str]] = None
+        transcript_names_str = request.args.get("transcript_names")
+        if transcript_names_str:
+            transcript_names = [
+                name.strip() for name in transcript_names_str.split(",") if name.strip()
+            ]
+
+        transcript_terms: Optional[List[str]] = None
+        transcript_terms_str = request.args.get("transcript_terms")
+        if transcript_terms_str:
+            transcript_terms = [
+                term.strip() for term in transcript_terms_str.split(",") if term.strip()
+            ]
+
         async with AsyncClient.from_uri(uri) as client:
             await client.write_event(
-                Transcribe(name=model_name, language=language).event()
+                Transcribe(
+                    name=model_name,
+                    language=language,
+                    transcript_names=transcript_names,
+                    transcript_terms=transcript_terms,
+                ).event()
             )
 
             with io.BytesIO(request.data) as wav_io:
