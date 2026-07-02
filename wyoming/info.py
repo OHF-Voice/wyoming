@@ -10,6 +10,7 @@ from .util.dataclasses_json import DataClassJsonMixin
 DOMAIN = "info"
 _DESCRIBE_TYPE = "describe"
 _INFO_TYPE = "info"
+_SELECT_PROGRAM_TYPE = "select-program"
 
 
 @dataclass
@@ -26,6 +27,37 @@ class Describe(Eventable):
     @staticmethod
     def from_event(event: Event) -> "Describe":
         return Describe()
+
+
+@dataclass
+class SelectProgram(Eventable):
+    """Select which program handles this connection.
+
+    Sent by the client after connecting, before the first request event (e.g.,
+    describe/transcribe/synthesize/detect/recognize). Selects one of the
+    programs advertised in the info message by name for the lifetime of the
+    connection. The domain (asr, tts, ...) is implied by the request events
+    that follow, so ``name`` only needs to be unique within a domain.
+
+    If this event is not sent, the first program of each type in the info
+    message is used. Servers are expected to drop unrecognized events, so
+    sending this to a server that predates it is a no-op (the default program
+    is used).
+    """
+
+    name: str
+    """Name of the program to use (matches a program name in the info message)."""
+
+    @staticmethod
+    def is_type(event_type: str) -> bool:
+        return event_type == _SELECT_PROGRAM_TYPE
+
+    def event(self) -> Event:
+        return Event(type=_SELECT_PROGRAM_TYPE, data={"name": self.name})
+
+    @staticmethod
+    def from_event(event: Event) -> "SelectProgram":
+        return SelectProgram(name=event.data["name"])
 
 
 @dataclass

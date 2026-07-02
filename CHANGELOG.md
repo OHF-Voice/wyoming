@@ -1,10 +1,11 @@
 # Changelog
 
-## Unreleased
+## 1.10.0
 
-- Add `text_format` so `synthesize` and `synthesize-start` (e.g., for "ssml")
 - Add VAD and audio preferences to ASR program
-- Add `vad_sensitivity` to `transcribe`
+- Add `select-program` to choose a program by name for the lifetime of a connection (defaults to the first program of each type)
+- Add `vad_sensitivity`, `transcript_names`, and `transcript_terms` to `transcribe`
+- Add `text_format` so `synthesize` and `synthesize-start` (e.g., for "ssml")
 
 ## 1.9.0
 

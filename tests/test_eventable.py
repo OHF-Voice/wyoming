@@ -75,6 +75,7 @@ TEST_ATTRIBUTION = Attribution(name=TEST_NAME, url=TEST_URL)
 TEST_DATA: Dict[str, Dict[str, Any]] = {
     # info
     "Describe": {},
+    "SelectProgram": {"name": TEST_NAME},
     "Info": {
         "asr": [
             AsrProgram(
@@ -235,6 +236,8 @@ TEST_DATA: Dict[str, Dict[str, Any]] = {
         "context": TEST_CONTEXT,
         "language": TEST_LANGUAGE,
         "vad_sensitivity": "default",
+        "transcript_names": ["EcoBee"],
+        "transcript_terms": ["pause"],
     },
     "Transcript": {
         "text": TEST_TEXT,
