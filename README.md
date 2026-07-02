@@ -154,7 +154,14 @@ Describe available services.
             * `rate` - sample rate in hertz (int, required)
             * `width` - sample width in bytes (int, required)
             * `channels` - number of channels (int, required)
-    
+* `select-program` - selects which program handles the connection (optional)
+    * `name` - name of the program to use, matching a program `name` from `info` (string, required)
+    * Sent after connecting, before the first request event (e.g. `describe`, `transcribe`, `synthesize`, `detect`, `recognize`)
+    * Applies for the lifetime of the connection
+    * The domain (asr, tts, ...) is implied by the request events that follow, so `name` only needs to be unique within a domain
+    * If not sent, the first program of each type in `info` is used
+    * Servers are expected to drop unrecognized events, so sending this to a server that predates it is a no-op (the default program is used)
+
 ### Speech Recognition
 
 Transcribe audio into text.
@@ -346,6 +353,16 @@ Pipelines are run on the server, but can be triggered remotely from the server a
 
 1. &rarr; `describe` (required) 
 2. &larr; `info` (required)
+
+
+### Program Selection
+
+When an endpoint exposes more than one program of a type (e.g. multiple `asr`
+programs), select one for the connection before the request events below:
+
+1. &rarr; `select-program` with `name` of the program to use (optional)
+    * Omit to use the first program of each type in `info`
+2. &rarr; request events for the chosen program (e.g. `transcribe`, `synthesize`, `detect`, `recognize`)
 
 
 ### Speech to Text

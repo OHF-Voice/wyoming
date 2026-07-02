@@ -75,6 +75,7 @@ TEST_ATTRIBUTION = Attribution(name=TEST_NAME, url=TEST_URL)
 TEST_DATA: Dict[str, Dict[str, Any]] = {
     # info
     "Describe": {},
+    "SelectProgram": {"name": TEST_NAME},
     "Info": {
         "asr": [
             AsrProgram(
