@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from .event import Event, Eventable
 
@@ -77,6 +77,18 @@ class Transcribe(Eventable):
     vad_sensitivity: Optional[Union[str, VadSensitivity]] = None
     """How quickly the end of a voice command is detected."""
 
+    transcript_names: Optional[List[str]] = None
+    """Unique names that should bias the ASR transcription.
+
+    These take priority over terms.
+    """
+
+    transcript_terms: Optional[List[str]] = None
+    """Domain-specific terms that should bias the ASR transcription.
+
+    These are lower priority than names.
+    """
+
     @staticmethod
     def is_type(event_type: str) -> bool:
         return event_type == _TRANSCRIBE_TYPE
@@ -97,6 +109,12 @@ class Transcribe(Eventable):
         elif self.vad_sensitivity is not None:
             data["vad_sensitivity"] = self.vad_sensitivity
 
+        if self.transcript_names is not None:
+            data["transcript_names"] = self.transcript_names
+
+        if self.transcript_terms is not None:
+            data["transcript_terms"] = self.transcript_terms
+
         return Event(type=_TRANSCRIBE_TYPE, data=data)
 
     @staticmethod
@@ -116,6 +134,8 @@ class Transcribe(Eventable):
             language=data.get("language"),
             context=data.get("context"),
             vad_sensitivity=vad_sensitivity,
+            transcript_names=data.get("transcript_names"),
+            transcript_terms=data.get("transcript_terms"),
         )
 
 
