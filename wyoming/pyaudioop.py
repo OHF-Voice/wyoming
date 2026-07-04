@@ -8,9 +8,10 @@ Only supports:
 
 import math
 import struct
-from typing import Final, List, Optional, Tuple, Union
+from typing import Final, List, Literal, Optional, Tuple, Union
 
 BufferType = Union[bytes, bytearray]
+Endian = Literal["big", "little"]
 State = Tuple[int, Tuple[Tuple[int, ...], ...]]
 
 # width = (_, 1, 2, _, 4)
@@ -18,6 +19,7 @@ _MAX_VALS: Final = [0, 0x7F, 0x7FFF, 0, 0x7FFFFFFF]
 _MIN_VALS: Final = [0, -0x80, -0x8000, 0, -0x80000000]
 _SIGNED_FORMATS: Final = ["", "b", "h", "", "i"]
 _UNSIGNED_FORMATS: Final = ["", "B", "H", "", "I"]
+_ENDIAN_FORMAT_PREFIX: Final = {"big": ">", "little": "<"}
 
 
 def check_size(size: int) -> None:
@@ -32,6 +34,17 @@ def check_parameters(fragment_length: int, size: int) -> None:
             "Not a whole number of frames: "
             f"fragment_length={fragment_length}, size={size}"
         )
+
+
+def _get_struct_format(width: int, endian: Endian) -> str:
+    struct_format = _SIGNED_FORMATS[width]
+    if width == 1:
+        return struct_format
+
+    try:
+        return _ENDIAN_FORMAT_PREFIX[endian] + struct_format
+    except KeyError as err:
+        raise ValueError(f"Endian should be 'big' or 'little'. Got {endian}") from err
 
 
 def fbound(val: float, min_val: float, max_val: float) -> int:
@@ -87,40 +100,42 @@ def tostereo(
     return result
 
 
-def _get_sample32(fragment: BufferType, width: int, index: int) -> int:
+def _get_sample32(fragment: BufferType, width: int, index: int, endian: Endian) -> int:
     """Extract a sample and convert it to 32-bit representation."""
     if width == 1:
-        # Use struct to handle signed byte properly
-        return struct.unpack_from('b', fragment, index)[0] << 24
+        return struct.unpack_from("b", fragment, index)[0] << 24
 
-    elif width == 2:
-        # Use struct to handle signed 16-bit with native byte order
-        return struct.unpack_from('h', fragment, index)[0] << 16
+    if width == 2:
+        return (
+            struct.unpack_from(_get_struct_format(width, endian), fragment, index)[0]
+            << 16
+        )
 
-    elif width == 4:
-        # Use struct to handle signed 32-bit with native byte order
-        return struct.unpack_from('i', fragment, index)[0]
+    if width == 4:
+        return struct.unpack_from(_get_struct_format(width, endian), fragment, index)[0]
 
     raise ValueError(f"Invalid width: {width}")
 
-def _set_sample32(fragment: bytearray, width: int, index: int, sample: int) -> None:
+
+def _set_sample32(
+    fragment: bytearray, width: int, index: int, sample: int, endian: Endian
+) -> None:
     """Set a sample from 32-bit representation."""
     if width == 1:
-        # Scale down from 32-bit and pack as signed byte
-        val = sample >> 24
-        struct.pack_into('b', fragment, index, val)
+        struct.pack_into("b", fragment, index, sample >> 24)
     elif width == 2:
-        # Scale down from 32-bit and pack as signed 16-bit
-        val = sample >> 16
-        struct.pack_into('h', fragment, index, val)
+        struct.pack_into(
+            _get_struct_format(width, endian), fragment, index, sample >> 16
+        )
     elif width == 4:
-        # Pack as signed 32-bit
-        struct.pack_into('i', fragment, index, sample)
+        struct.pack_into(_get_struct_format(width, endian), fragment, index, sample)
     else:
         raise ValueError(f"Invalid width: {width}")
 
 
-def lin2lin(fragment: BufferType, width: int, new_width: int) -> BufferType:
+def lin2lin(
+    fragment: BufferType, width: int, new_width: int, endian: Endian = "little"
+) -> BufferType:
     if width == new_width:
         return fragment
 
@@ -132,8 +147,8 @@ def lin2lin(fragment: BufferType, width: int, new_width: int) -> BufferType:
 
     j = 0
     for i in range(0, fragment_length, width):
-        sample = _get_sample32(fragment, width, i)
-        _set_sample32(result, new_width, j, sample)
+        sample = _get_sample32(fragment, width, i, endian)
+        _set_sample32(result, new_width, j, sample, endian)
         j += new_width
 
     return result
