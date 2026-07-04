@@ -10,6 +10,7 @@ from .util.dataclasses_json import DataClassJsonMixin
 DOMAIN = "info"
 _DESCRIBE_TYPE = "describe"
 _INFO_TYPE = "info"
+_SELECT_PROGRAM_TYPE = "select-program"
 
 
 @dataclass
@@ -26,6 +27,37 @@ class Describe(Eventable):
     @staticmethod
     def from_event(event: Event) -> "Describe":
         return Describe()
+
+
+@dataclass
+class SelectProgram(Eventable):
+    """Select which program handles this connection.
+
+    Sent by the client after connecting, before the first request event (e.g.,
+    describe/transcribe/synthesize/detect/recognize). Selects one of the
+    programs advertised in the info message by name for the lifetime of the
+    connection. The domain (asr, tts, ...) is implied by the request events
+    that follow, so ``name`` only needs to be unique within a domain.
+
+    If this event is not sent, the first program of each type in the info
+    message is used. Servers are expected to drop unrecognized events, so
+    sending this to a server that predates it is a no-op (the default program
+    is used).
+    """
+
+    name: str
+    """Name of the program to use (matches a program name in the info message)."""
+
+    @staticmethod
+    def is_type(event_type: str) -> bool:
+        return event_type == _SELECT_PROGRAM_TYPE
+
+    def event(self) -> Event:
+        return Event(type=_SELECT_PROGRAM_TYPE, data={"name": self.name})
+
+    @staticmethod
+    def from_event(event: Event) -> "SelectProgram":
+        return SelectProgram(name=event.data["name"])
 
 
 @dataclass
@@ -79,6 +111,15 @@ class AsrProgram(Artifact):
 
     supports_transcript_streaming: bool = False
     """True if transcript streaming events are supported."""
+
+    requires_external_vad: bool = True
+    """True if ASR program needs an external VAD to detect the end of voice commands."""
+
+    prefers_auto_gain_enabled: bool = True
+    """True if input audio should adjust gain automatically for best results."""
+
+    prefers_noise_reduction_enabled: bool = True
+    """True if input audio should apply noise reduction for best results."""
 
 
 # -----------------------------------------------------------------------------
@@ -134,6 +175,9 @@ class HandleProgram(Artifact):
 
     supports_handled_streaming: bool = False
     """True if handled response streaming events are supported."""
+
+    supports_home_control: bool = False
+    """True if the service may execute home control actions during handling."""
 
 
 # -----------------------------------------------------------------------------
@@ -275,8 +319,6 @@ class Info(Eventable):
 
     @staticmethod
     def from_event(event: Event) -> "Info":
-        assert event.data is not None
-
         satellite: Optional[Satellite] = None
         satellite_data = event.data.get("satellite")
         if satellite_data is not None:

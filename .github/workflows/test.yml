@@ -3,10 +3,9 @@ name: test
 
 # yamllint disable-line rule:truthy
 on:
-  push:
-    branches: [master]
-
   pull_request:
+    branches:
+      - main
 
 permissions:
   contents: read

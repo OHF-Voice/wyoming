@@ -1,6 +1,6 @@
 # Wyoming Protocol
 
-A peer-to-peer protocol for voice assistants (basically [JSONL](https://jsonlines.org/) + PCM audio)
+A peer-to-peer TCP protocol for voice assistants (basically [JSONL](https://jsonlines.org/) + PCM audio)
 
 ``` text
 { "type": "...", "data": { ... }, "data_length": ..., "payload_length": ... }\n
@@ -8,14 +8,12 @@ A peer-to-peer protocol for voice assistants (basically [JSONL](https://jsonline
 <payload_length bytes (optional)>
 ```
 
-Used in [Rhasspy](https://github.com/rhasspy/rhasspy3/) and [Home Assistant](https://www.home-assistant.io/integrations/wyoming) for communication with voice services.
+Used in [Home Assistant](https://www.home-assistant.io/integrations/wyoming) for communication with voice services.
 
 [![An open standard from the Open Home Foundation](https://www.openhomefoundation.org/badges/ohf-open-standard.png)](https://www.openhomefoundation.org/)
 
 ## Wyoming Projects
 
-* Voice satellites
-    * [Satellite](https://github.com/rhasspy/wyoming-satellite) for Home Assistant 
 * Audio input/output
     * [mic-external](https://github.com/rhasspy/wyoming-mic-external)
     * [snd-external](https://github.com/rhasspy/wyoming-snd-external)
@@ -92,6 +90,9 @@ Describe available services.
             * `description` - human-readable description (string, optional)
             * `version` - version of the model (string, optional)
         * `supports_transcript_streaming` - true if program can stream transcript chunks
+        * `requires_external_vad` - true if ASR program needs external VAD to detect end of voice commands
+        * `prefers_auto_gain_enabled` - true if input audio should have auto gain enabled
+        * `prefers_noise_reduction_enabled` - true if input audio should have noise reduction enabled
     * `tts` - list text to speech services (optional)
         * `models` - list of available models
             * `name` - unique name (required)
@@ -105,7 +106,7 @@ Describe available services.
             * `description` - human-readable description (string, optional)
             * `version` - version of the model (string, optional)
        * `supports_synthesize_streaming` - true if program can stream text chunks
-    * `wake` - list wake word detection services( optional )
+    * `wake` - list wake word detection services (optional)
         * `models` - list of available models (required)
             * `name` - unique name (required)
             * `languages` - supported languages by model (list of string, required)
@@ -126,6 +127,7 @@ Describe available services.
             * `description` - human-readable description (string, optional)
             * `version` - version of the model (string, optional)
         * `supports_handled_streaming` - true if program can stream response chunks
+        * `supports_home_control` - true if program may execute home control actions during handling
     * `intent` - list intent recognition services (optional)
         * `models` - list of available models (required)
             * `name` - unique name (required)
@@ -139,7 +141,7 @@ Describe available services.
     * `satellite` - information about voice satellite (optional)
         * `area` - name of area where satellite is located (string, optional)
         * `has_vad` - true if the end of voice commands will be detected locally (boolean, optional)
-        * `active_wake_words` - list of wake words that are actively being listend for (list of string, optional)
+        * `active_wake_words` - list of wake words that are actively being listened for (list of string, optional)
         * `max_active_wake_words` - maximum number of local wake words that can be run simultaneously (number, optional)
         * `supports_trigger` - true if satellite supports remotely-triggered pipelines
     * `mic` - list of audio input services (optional)
@@ -152,7 +154,14 @@ Describe available services.
             * `rate` - sample rate in hertz (int, required)
             * `width` - sample width in bytes (int, required)
             * `channels` - number of channels (int, required)
-    
+* `select-program` - selects which program handles the connection (optional)
+    * `name` - name of the program to use, matching a program `name` from `info` (string, required)
+    * Sent after connecting, before the first request event (e.g. `describe`, `transcribe`, `synthesize`, `detect`, `recognize`)
+    * Applies for the lifetime of the connection
+    * The domain (asr, tts, ...) is implied by the request events that follow, so `name` only needs to be unique within a domain
+    * If not sent, the first program of each type in `info` is used
+    * Servers are expected to drop unrecognized events, so sending this to a server that predates it is a no-op (the default program is used)
+
 ### Speech Recognition
 
 Transcribe audio into text.
@@ -161,6 +170,8 @@ Transcribe audio into text.
     * `name` - name of model to use (string, optional)
     * `language` - language of spoken audio (string, optional)
     * `context` - context from previous interactions (object, optional)
+    * `vad_sensitivity` - how quickly end of voice command is detected (string, optional)
+        * Only if ASR program has `requires_external_vad` as `False`
 * `transcript` - response with transcription
     * `text` - text transcription of spoken audio (string, required)
     * `language` - language of transcript (string, optional)
@@ -186,6 +197,8 @@ Synthesize audio from text.
         * `name` - name of voice (string, optional)
         * `language` - language of voice (string, optional)
         * `speaker` - speaker of voice (string, optional)
+    * `text_format` - format of text (string, optional)
+        * Can be "text", "ssml", or something else
         
 Streaming:
 
@@ -195,6 +208,8 @@ Streaming:
         * `name` - name of voice (string, optional)
         * `language` - language of voice (string, optional)
         * `speaker` - speaker of voice (string, optional)
+    * `text_format` - format of text (string, optional)
+        * Can be "text", "ssml", or something else
 2. `synthesize-chunk`
     * `text` - part of text to synthesize (string, required)
 3. Original `synthesize` message must be sent for backwards compatibility
@@ -208,8 +223,8 @@ Detect wake words in an audio stream.
 * `detect` - request detection of specific wake word(s)
     * `names` - wake word names to detect (list of string, optional)
 * `detection` - response when detection occurs
-    * `name` - name of wake word that was detected (int, optional)
-    * `timestamp` - timestamp of audio chunk in milliseconds when detection occurred (int optional)
+    * `name` - name of wake word that was detected (string, optional)
+    * `timestamp` - timestamp of audio chunk in milliseconds when detection occurred (int, optional)
 * `not-detected` - response when audio stream ends without a detection
 
 ### Voice Activity Detection
@@ -238,6 +253,14 @@ Recognizes intents from text.
 * `not-recognized` - response indicating no intent was recognized
     * `text` - response for user (string, optional)
     * `context` - context for next interactions (object, optional)
+    
+Multiple intents:
+
+1. `intents-start` - signals one or more intents will follow
+    * `context` - context from previous interactions (object, optional)
+2. `intent` - one or more intents sent as normal
+    * Older clients will only process the first intent
+3. `intents-stop` - end of intents
 
 ### Intent Handling
 
@@ -313,6 +336,13 @@ Pipelines are run on the server, but can be triggered remotely from the server a
 * `timer-finished` - timer finished without being cancelled
     * `id` - unique id of timer (string, required)
 
+### Miscellaneous
+
+* `user-event` - user-defined event
+    * `name` - name of the user event type (string, required)
+    * `data` - data for user event (object, optional)
+    * `context` - context from previous interactions (object, optional)
+
 ## Event Flow
 
 * &rarr; is an event from client to server
@@ -323,6 +353,16 @@ Pipelines are run on the server, but can be triggered remotely from the server a
 
 1. &rarr; `describe` (required) 
 2. &larr; `info` (required)
+
+
+### Program Selection
+
+When an endpoint exposes more than one program of a type (e.g. multiple `asr`
+programs), select one for the connection before the request events below:
+
+1. &rarr; `select-program` with `name` of the program to use (optional)
+    * Omit to use the first program of each type in `info`
+2. &rarr; request events for the chosen program (e.g. `transcribe`, `synthesize`, `detect`, `recognize`)
 
 
 ### Speech to Text
@@ -361,7 +401,7 @@ Streaming:
 Streaming:
 
 1. &rarr; `synthesize-start` event (required)
-3. &rarr; `synthesize-chunk` event (required)
+2. &rarr; `synthesize-chunk` event (required)
     * Text chunks are sent as they're produced
 3. &larr; `audio-start`, `audio-chunk` (one or more), `audio-stop`
     * Audio chunks are sent as they're produced with start/stop
@@ -401,6 +441,15 @@ Streaming:
 1. &rarr; `recognize` (required)
 2. &larr; `intent` if successful
 3. &larr; `not-recognized` if not successful
+
+For multiple intents:
+
+1. &rarr; `recognize` (required)
+2. &larr; `intents-start` if successful
+3. &larr; `intent` if successful
+    * One or more intents
+4. &larr; `intents-stop` if successful
+5. &larr; `not-recognized` if not successful
 
 ### Intent Handling
 

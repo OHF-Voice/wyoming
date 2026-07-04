@@ -3,6 +3,7 @@
 import importlib
 import inspect
 import pkgutil
+from dataclasses import MISSING, fields
 from typing import Any, Dict, List, Type
 
 import pytest
@@ -46,6 +47,14 @@ def all_unique_eventables() -> List[Type[Eventable]]:
 
 
 EVENTABLE_CLASSES = all_unique_eventables()
+NO_ARGS_CLASSES = [
+    cls
+    for cls in EVENTABLE_CLASSES
+    if all(
+        f.default is not MISSING or f.default_factory is not MISSING
+        for f in fields(cls)  # type: ignore[arg-type]
+    )
+]
 
 TEST_NAME = "test-name"
 TEST_TEXT = "test text"
@@ -66,6 +75,7 @@ TEST_ATTRIBUTION = Attribution(name=TEST_NAME, url=TEST_URL)
 TEST_DATA: Dict[str, Dict[str, Any]] = {
     # info
     "Describe": {},
+    "SelectProgram": {"name": TEST_NAME},
     "Info": {
         "asr": [
             AsrProgram(
@@ -85,6 +95,9 @@ TEST_DATA: Dict[str, Dict[str, Any]] = {
                     )
                 ],
                 supports_transcript_streaming=True,
+                requires_external_vad=False,
+                prefers_auto_gain_enabled=False,
+                prefers_noise_reduction_enabled=False,
             )
         ],
         "tts": [
@@ -126,6 +139,7 @@ TEST_DATA: Dict[str, Dict[str, Any]] = {
                     )
                 ],
                 supports_handled_streaming=True,
+                supports_home_control=True,
             )
         ],
         "intent": [
@@ -221,6 +235,9 @@ TEST_DATA: Dict[str, Dict[str, Any]] = {
         "name": TEST_NAME,
         "context": TEST_CONTEXT,
         "language": TEST_LANGUAGE,
+        "vad_sensitivity": "default",
+        "transcript_names": ["EcoBee"],
+        "transcript_terms": ["pause"],
     },
     "Transcript": {
         "text": TEST_TEXT,
@@ -241,6 +258,8 @@ TEST_DATA: Dict[str, Dict[str, Any]] = {
         "context": TEST_CONTEXT,
     },
     "NotRecognized": {"text": TEST_TEXT, "context": TEST_CONTEXT},
+    "IntentsStart": {"context": TEST_CONTEXT},
+    "IntentsStop": {"context": TEST_CONTEXT},
     # handle
     "Handled": {
         "text": TEST_TEXT,
@@ -254,11 +273,20 @@ TEST_DATA: Dict[str, Dict[str, Any]] = {
         "context": TEST_CONTEXT,
     },
     # tts
-    "SynthesizeStart": {"voice": TEST_VOICE, "context": TEST_CONTEXT},
+    "SynthesizeStart": {
+        "voice": TEST_VOICE,
+        "text_format": "ssml",
+        "context": TEST_CONTEXT,
+    },
     "SynthesizeChunk": {"text": TEST_TEXT},
     "SynthesizeStop": {},
     "SynthesizeStopped": {},
-    "Synthesize": {"text": TEST_TEXT, "voice": TEST_VOICE, "context": TEST_CONTEXT},
+    "Synthesize": {
+        "text": TEST_TEXT,
+        "voice": TEST_VOICE,
+        "text_format": "text",
+        "context": TEST_CONTEXT,
+    },
     # timers
     "TimerStarted": {"id": TEST_ID, "total_seconds": 100},
     "TimerUpdated": {"id": TEST_ID, "total_seconds": 100, "is_active": True},
@@ -278,6 +306,11 @@ TEST_DATA: Dict[str, Dict[str, Any]] = {
     "Ping": {},
     "Pong": {},
     "RunPipeline": {"start_stage": PipelineStage.ASR, "end_stage": PipelineStage.TTS},
+    "UserEvent": {
+        "name": TEST_NAME,
+        "data": {TEST_ID: TEST_TEXT},
+        "context": TEST_CONTEXT,
+    },
 }
 
 
@@ -285,6 +318,22 @@ TEST_DATA: Dict[str, Dict[str, Any]] = {
 def test_eventable_round_trip(cls: Type[Eventable]) -> None:
     init_kwargs = TEST_DATA[cls.__name__]
     instance = cls(**init_kwargs)
+
+    # Test event() method
+    event = instance.event()
+    assert event.type is not None, f"{cls} returned event with no type"
+
+    # Test is_type matches event.type
+    assert cls.is_type(event.type), f"{cls}.is_type failed for {event.type}"
+
+    # Test from_event returns an equivalent object
+    round_trip = cls.from_event(event)
+    assert round_trip == instance, f"{cls}.from_event failed to round-trip {instance}"
+
+
+@pytest.mark.parametrize("cls", NO_ARGS_CLASSES)
+def test_eventable_no_args(cls: Type[Eventable]) -> None:
+    instance = cls()
 
     # Test event() method
     event = instance.event()

@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.10.0
+
+- Add VAD and audio preferences to ASR program
+- Add `select-program` to choose a program by name for the lifetime of a connection (defaults to the first program of each type)
+- Add `vad_sensitivity`, `transcript_names`, and `transcript_terms` to `transcribe`
+- Add `text_format` so `synthesize` and `synthesize-start` (e.g., for "ssml")
+
+## 1.9.0
+
+- Add `intents-start` and `intents-end` to allow for multiple intents to be recognized
+- Add `supports_home_control` flag to indicate an intent handling program may execute home control actions
+- Add `user-event` for user-defined events
+- Add `wake_words` query parameter to wake server
+
+## 1.8.0
+
+- Fix ZeroConf
+
+## 1.7.2
+
+- Fix event data being `None`
+
+## 1.7.1
+
+- Loosen Python version requirement
+
 ## 1.7.0
 
 - Add streaming to `tts`, `handle`, and `asr`

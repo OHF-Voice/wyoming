@@ -1,7 +1,8 @@
 """Text to speech."""
 
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from enum import Enum
+from typing import Any, Dict, Optional, Union
 
 from .event import Event, Eventable
 
@@ -13,6 +14,13 @@ _SYNTHESIZE_START_TYPE = "synthesize-start"
 _SYNTHESIZE_CHUNK_TYPE = "synthesize-chunk"
 _SYNTHESIZE_STOP_TYPE = "synthesize-stop"
 _SYNTHESIZE_STOPPED_TYPE = "synthesize-stopped"
+
+
+class SynthesizeTextFormat(str, Enum):
+    """Format of text to synthesize."""
+
+    TEXT = "text"
+    SSML = "ssml"
 
 
 @dataclass
@@ -49,7 +57,7 @@ class SynthesizeVoice:
             )
 
         if "language" in voice:
-            return SynthesizeVoice(name=voice["language"])
+            return SynthesizeVoice(language=voice["language"])
 
         return None
 
@@ -64,6 +72,9 @@ class Synthesize(Eventable):
     voice: Optional[SynthesizeVoice] = None
     """Voice to use during synthesis."""
 
+    text_format: Optional[Union[str, SynthesizeTextFormat]] = None
+    """Format of text."""
+
     context: Optional[Dict[str, Any]] = None
     """Context for next interaction."""
 
@@ -75,6 +86,10 @@ class Synthesize(Eventable):
         data: Dict[str, Any] = {"text": self.text}
         if self.voice is not None:
             data["voice"] = self.voice.to_dict()
+        if isinstance(self.text_format, SynthesizeTextFormat):
+            data["text_format"] = self.text_format.value
+        elif self.text_format is not None:
+            data["text_format"] = self.text_format
         if self.context is not None:
             data["context"] = self.context
 
@@ -82,10 +97,20 @@ class Synthesize(Eventable):
 
     @staticmethod
     def from_event(event: Event) -> "Synthesize":
-        assert event.data is not None
+        text_format: Optional[Union[str, SynthesizeTextFormat]] = event.data.get(
+            "text_format"
+        )
+        if text_format is not None:
+            try:
+                text_format = SynthesizeTextFormat(text_format)
+            except ValueError:
+                # Leave original value
+                pass
+
         return Synthesize(
             text=event.data["text"],
             voice=SynthesizeVoice.from_dict(event.data.get("voice", {})),
+            text_format=text_format,
             context=event.data.get("context"),
         )
 
@@ -96,6 +121,9 @@ class SynthesizeStart(Eventable):
 
     voice: Optional[SynthesizeVoice] = None
     """Voice to use during synthesis."""
+
+    text_format: Optional[Union[str, SynthesizeTextFormat]] = None
+    """Format of text."""
 
     context: Optional[Dict[str, Any]] = None
     """Context for next interaction."""
@@ -108,6 +136,10 @@ class SynthesizeStart(Eventable):
         data: Dict[str, Any] = {}
         if self.voice is not None:
             data["voice"] = self.voice.to_dict()
+        if isinstance(self.text_format, SynthesizeTextFormat):
+            data["text_format"] = self.text_format.value
+        elif self.text_format is not None:
+            data["text_format"] = self.text_format
         if self.context is not None:
             data["context"] = self.context
 
@@ -115,9 +147,19 @@ class SynthesizeStart(Eventable):
 
     @staticmethod
     def from_event(event: Event) -> "SynthesizeStart":
-        data = event.data if event.data is not None else {}
+        text_format: Optional[Union[str, SynthesizeTextFormat]] = event.data.get(
+            "text_format"
+        )
+        if text_format is not None:
+            try:
+                text_format = SynthesizeTextFormat(text_format)
+            except ValueError:
+                # Leave original value
+                pass
+
         return SynthesizeStart(
-            voice=SynthesizeVoice.from_dict(data.get("voice", {})),
+            voice=SynthesizeVoice.from_dict(event.data.get("voice", {})),
+            text_format=text_format,
             context=event.data.get("context"),
         )
 
@@ -138,7 +180,6 @@ class SynthesizeChunk(Eventable):
 
     @staticmethod
     def from_event(event: Event) -> "SynthesizeChunk":
-        assert event.data is not None
         return SynthesizeChunk(text=event.data["text"])
 
 

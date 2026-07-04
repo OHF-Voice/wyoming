@@ -31,5 +31,4 @@ class Error(Eventable):
 
     @staticmethod
     def from_event(event: Event) -> "Error":
-        assert event.data is not None
         return Error(text=event.data["text"], code=event.data.get("code"))

@@ -199,6 +199,22 @@ def test_read_event() -> None:
         )
 
 
+def test_read_event_no_data() -> None:
+    """Test synchronous event reading with no data."""
+    header = {"type": "test-event", "version": wyoming_version}
+
+    with io.BytesIO() as buf:
+        header_bytes = json.dumps(header, ensure_ascii=False).encode("utf-8")
+        buf.write(header_bytes)
+        buf.write(b"\n")
+        buf.seek(0)
+        event_bytes = buf.getvalue()
+
+    with io.BytesIO(event_bytes) as reader:
+        event = read_event(reader)
+        assert event == Event(type="test-event")
+
+
 @pytest.mark.asyncio
 async def test_async_read_event() -> None:
     """Test asynchronous event reading."""
@@ -237,3 +253,20 @@ async def test_async_read_event() -> None:
         data={"test": "data", "test2": "this will not"},
         payload=PAYLOAD,
     )
+
+
+@pytest.mark.asyncio
+async def test_async_read_event_no_data() -> None:
+    """Test asynchronous event reading with no data."""
+    header = {"type": "test-event", "version": wyoming_version}
+
+    with io.BytesIO() as buf:
+        header_bytes = json.dumps(header, ensure_ascii=False).encode("utf-8")
+        buf.write(header_bytes)
+        buf.write(b"\n")
+        buf.seek(0)
+        event_bytes = buf.getvalue()
+
+    reader = FakeStreamReader(event_bytes)
+    event = await async_read_event(reader)  # type: ignore
+    assert event == Event(type="test-event")
