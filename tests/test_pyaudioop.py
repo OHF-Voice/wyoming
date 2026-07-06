@@ -1,15 +1,13 @@
-import sys
-
 from wyoming import pyaudioop
 
 
-def pack(width, data):
-    return b"".join(v.to_bytes(width, sys.byteorder, signed=True) for v in data)
+def pack(width, data, endian="little"):
+    return b"".join(v.to_bytes(width, endian, signed=True) for v in data)
 
 
-def unpack(width, data):
+def unpack(width, data, endian="little"):
     return [
-        int.from_bytes(data[i : i + width], sys.byteorder, signed=True)
+        int.from_bytes(data[i : i + width], endian, signed=True)
         for i in range(0, len(data), width)
     ]
 
@@ -53,6 +51,31 @@ def test_lin2lin() -> None:
     assert pyaudioop.lin2lin(datas[4], 4, 1) == b"\x00\x12\x45\xba\x7f\x80\xff"
     assert pyaudioop.lin2lin(datas[4], 4, 2) == packs[2](
         0, 0x1234, 0x4567, -0x4568, 0x7FFF, -0x8000, -1
+    )
+
+
+def test_lin2lin_big_endian() -> None:
+    """Test sample width conversions with big-endian samples."""
+    data2 = pack(2, (0, 0x1234, 0x4567, -0x4567, 0x7FFF, -0x8000, -1), endian="big")
+    data4 = pack(
+        4,
+        (0, 0x12345678, 0x456789AB, -0x456789AB, 0x7FFFFFFF, -0x80000000, -1),
+        endian="big",
+    )
+
+    assert pyaudioop.lin2lin(data2, 2, 1, endian="big") == (
+        b"\x00\x12\x45\xba\x7f\x80\xff"
+    )
+    assert pyaudioop.lin2lin(data2, 2, 4, endian="big") == pack(
+        4,
+        (0, 0x12340000, 0x45670000, -0x45670000, 0x7FFF0000, -0x80000000, -0x10000),
+        endian="big",
+    )
+    assert pyaudioop.lin2lin(data4, 4, 1, endian="big") == (
+        b"\x00\x12\x45\xba\x7f\x80\xff"
+    )
+    assert pyaudioop.lin2lin(data4, 4, 2, endian="big") == pack(
+        2, (0, 0x1234, 0x4567, -0x4568, 0x7FFF, -0x8000, -1), endian="big"
     )
 
 
