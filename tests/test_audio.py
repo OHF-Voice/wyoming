@@ -23,6 +23,34 @@ def test_chunk_converter() -> None:
     assert len(output_chunk.audio) == 1 * 16000 * 2 * 1  # 1 sec
 
 
+def test_chunk_converter_8bit() -> None:
+    """Test conversion to/from unsigned 8-bit audio.
+
+    WAV 8-bit samples are unsigned (silence = 128), unlike wider samples which
+    are signed (silence = 0). The converter must account for this.
+    """
+    # Unsigned 8-bit: silence, max, min, and a positive value
+    audio_8bit = bytes([128, 255, 0, 192])
+
+    # 8-bit -> 16-bit: silence must map to 0, not full-scale noise
+    to_16bit = AudioChunkConverter(width=2)
+    chunk_16bit = to_16bit.convert(
+        AudioChunk(rate=16000, width=1, channels=1, audio=audio_8bit)
+    )
+    assert chunk_16bit.width == 2
+    samples_16bit = [
+        int.from_bytes(chunk_16bit.audio[i : i + 2], "little", signed=True)
+        for i in range(0, len(chunk_16bit.audio), 2)
+    ]
+    assert samples_16bit[0] == 0  # unsigned silence -> signed silence
+
+    # 16-bit -> 8-bit round-trips back to the original unsigned bytes
+    to_8bit = AudioChunkConverter(width=1)
+    chunk_8bit = to_8bit.convert(chunk_16bit)
+    assert chunk_8bit.width == 1
+    assert chunk_8bit.audio == audio_8bit
+
+
 def test_wav_to_chunks() -> None:
     """Test WAV file to audio chunks."""
     with io.BytesIO() as wav_io:
