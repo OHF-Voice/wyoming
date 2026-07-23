@@ -3,7 +3,7 @@
 Only supports:
   - widths 1, 2, and 4
   - signed samples
-  - tomono, tostereo, lin2lin, ratecv
+  - bias, tomono, tostereo, lin2lin, ratecv
 """
 
 import math
@@ -131,6 +131,24 @@ def _set_sample32(
         struct.pack_into(_get_struct_format(width, endian), fragment, index, sample)
     else:
         raise ValueError(f"Invalid width: {width}")
+
+
+def bias(
+    fragment: BufferType, width: int, bias: int, endian: Endian = "little"
+) -> BufferType:
+    fragment_length = len(fragment)
+    check_parameters(fragment_length, width)
+
+    result = bytearray(fragment_length)
+    mask = (1 << (8 * width)) - 1
+
+    for i in range(0, fragment_length, width):
+        # Add bias with wrap-around on overflow, matching audioop.bias.
+        sample = int.from_bytes(fragment[i : i + width], endian)
+        sample = (sample + bias) & mask
+        result[i : i + width] = sample.to_bytes(width, endian)
+
+    return result
 
 
 def lin2lin(

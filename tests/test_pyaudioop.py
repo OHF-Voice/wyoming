@@ -31,6 +31,29 @@ INVALID_DATA = [
 ]
 
 
+def test_bias() -> None:
+    """Test adding a bias to samples."""
+    for w in 1, 2, 4:
+        for bias in 0, 1, -1, 127, -128, 0x7FFFFFFF, -0x80000000:
+            assert pyaudioop.bias(b"", w, bias) == b""
+
+    assert pyaudioop.bias(datas[1], 1, 1) == b"\x01\x13\x46\xbc\x80\x81\x00"
+    assert pyaudioop.bias(datas[1], 1, -1) == b"\xff\x11\x44\xba\x7e\x7f\xfe"
+    assert pyaudioop.bias(datas[1], 1, 0x7FFFFFFF) == b"\xff\x11\x44\xba\x7e\x7f\xfe"
+    assert pyaudioop.bias(datas[1], 1, -0x80000000) == datas[1]
+
+    assert pyaudioop.bias(datas[2], 2, 1) == packs[2](
+        1, 0x1235, 0x4568, -0x4566, -0x8000, -0x7FFF, 0
+    )
+    assert pyaudioop.bias(datas[4], 4, 1) == packs[4](
+        1, 0x12345679, 0x456789AC, -0x456789AA, -0x80000000, -0x7FFFFFFF, 0
+    )
+
+    # Accepts bytearray and memoryview like the other functions
+    assert pyaudioop.bias(bytearray(datas[1]), 1, 1) == b"\x01\x13\x46\xbc\x80\x81\x00"
+    assert pyaudioop.bias(memoryview(datas[1]), 1, 1) == b"\x01\x13\x46\xbc\x80\x81\x00"
+
+
 def test_lin2lin() -> None:
     """Test sample width conversions."""
     for w in 1, 2, 4:
