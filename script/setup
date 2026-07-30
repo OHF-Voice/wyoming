@@ -14,6 +14,9 @@ parser.add_argument("--http", action="store_true", help="Install http requiremen
 parser.add_argument(
     "--zeroconf", action="store_true", help="Install zeroconf requirements"
 )
+parser.add_argument(
+    "--websocket", action="store_true", help="Install websocket requirements"
+)
 args = parser.parse_args()
 
 # Create virtual environment
@@ -36,6 +39,9 @@ if args.http:
 
 if args.zeroconf:
     extras.append("zeroconf")
+
+if args.websocket:
+    extras.append("websocket")
 
 extras_str = ""
 if extras:

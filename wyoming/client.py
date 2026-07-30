@@ -9,8 +9,15 @@ from .event import (
     async_get_stdin,
     async_get_stdout,
     async_read_event,
+    async_read_event_from_bytes,
     async_write_event,
+    event_to_bytes,
 )
+
+try:
+    import websockets
+except ImportError:
+    websockets = None  # type: ignore[assignment]
 
 
 class AsyncClient(ABC):
@@ -57,7 +64,12 @@ class AsyncClient(ABC):
         if result.scheme == "stdio":
             return AsyncStdioClient()
 
-        raise ValueError("Only 'stdio://', 'unix://', or 'tcp://' are supported")
+        if result.scheme == "ws" or result.scheme == "wss":
+            return AsyncWebSocketClient(uri)
+
+        raise ValueError(
+            "Only 'stdio://', 'unix://', 'tcp://', or 'ws://' are supported"
+        )
 
 
 class AsyncTcpClient(AsyncClient):
@@ -130,3 +142,46 @@ class AsyncStdioClient(AsyncClient):
 
         assert self._writer is not None
         await async_write_event(event, self._writer)
+
+
+class AsyncWebSocketClient(AsyncClient):
+    """WebSocket Wyoming client."""
+
+    def __init__(self, uri: str) -> None:
+        super().__init__()
+
+        self.uri = uri
+        self._websocket = None
+
+    async def connect(self) -> None:
+        if websockets is None:
+            raise RuntimeError("websockets is required for 'ws://' support")
+
+        self._websocket = await websockets.connect(
+            self.uri,
+        )
+
+    async def disconnect(self) -> None:
+        websocket = self._websocket
+        self._websocket = None
+
+        if websocket is not None:
+            await websocket.close()
+
+    async def read_event(self) -> Optional[Event]:
+        assert self._websocket is not None
+
+        try:
+            message = await self._websocket.recv()
+        except websockets.ConnectionClosed:
+            return None
+
+        return await async_read_event_from_bytes(message)
+
+    async def write_event(self, event: Event) -> None:
+        assert self._websocket is not None
+
+        try:
+            await self._websocket.send(event_to_bytes(event))
+        except websockets.ConnectionClosed:
+            pass

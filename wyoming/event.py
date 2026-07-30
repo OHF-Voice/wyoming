@@ -4,7 +4,7 @@ import os
 import sys
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, BinaryIO, Dict, Iterable, Optional
+from typing import Any, BinaryIO, Dict, Iterable, Optional, Union
 
 from .version import __version__
 
@@ -109,7 +109,8 @@ async def async_read_event(reader: asyncio.StreamReader) -> Optional[Event]:
     return None
 
 
-async def async_write_event(event: Event, writer: asyncio.StreamWriter):
+def event_to_bytes(event: Event) -> bytes:
+    """Serialize an event to bytes in the Wyoming protocol wire format."""
     event_dict: Dict[str, Any] = event.to_dict()
     event_dict[_VERSION] = _VERSION_NUMBER
 
@@ -124,15 +125,31 @@ async def async_write_event(event: Event, writer: asyncio.StreamWriter):
 
     json_line = json.dumps(event_dict, ensure_ascii=False)
 
+    parts = [json_line.encode(), _NEWLINE]
+    if data_bytes:
+        parts.append(data_bytes)
+
+    if event.payload:
+        parts.append(event.payload)
+
+    return b"".join(parts)
+
+
+async def async_read_event_from_bytes(data: Union[bytes, str]) -> Optional[Event]:
+    """Read a single event from bytes in the Wyoming protocol wire format."""
+    if isinstance(data, str):
+        data = data.encode("utf-8")
+
+    reader = asyncio.StreamReader()
+    reader.feed_data(data)
+    reader.feed_eof()
+
+    return await async_read_event(reader)
+
+
+async def async_write_event(event: Event, writer: asyncio.StreamWriter):
     try:
-        writer.writelines((json_line.encode(), _NEWLINE))
-
-        if data_bytes:
-            writer.write(data_bytes)
-
-        if event.payload:
-            writer.write(event.payload)
-
+        writer.write(event_to_bytes(event))
         await writer.drain()
     except KeyboardInterrupt:
         pass
