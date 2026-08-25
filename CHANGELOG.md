@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Gracefully stop servers on SIGTERM so apps exit cleanly with code 0
+
 ## 1.10.0
 
 - Add VAD and audio preferences to ASR program
