@@ -1,6 +1,8 @@
 """Server tests."""
 
 import asyncio
+import os
+import signal
 import socket
 import tempfile
 from pathlib import Path
@@ -116,3 +118,47 @@ async def test_tcp_server() -> None:
 
     await client.disconnect()
     await tcp_server.stop()
+
+
+@pytest.mark.asyncio
+async def test_tcp_server_sigterm() -> None:
+    """Test that SIGTERM gracefully stops a running TCP server."""
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.bind(("127.0.0.1", 0))
+    port = sock.getsockname()[1]
+    sock.close()
+
+    tcp_server = AsyncServer.from_uri(f"tcp://127.0.0.1:{port}")
+    run_task = asyncio.create_task(tcp_server.run(PingHandler))
+
+    # Wait for socket to open
+    for _ in range(10):
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.connect(("127.0.0.1", port))
+            sock.close()
+            break
+        except ConnectionRefusedError:
+            await asyncio.sleep(0.1)
+
+    os.kill(os.getpid(), signal.SIGTERM)
+
+    # run() must return without raising
+    await asyncio.wait_for(run_task, timeout=5)
+
+
+@pytest.mark.asyncio
+async def test_tcp_server_cancel() -> None:
+    """Test that external cancellation of run() still propagates."""
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.bind(("127.0.0.1", 0))
+    port = sock.getsockname()[1]
+    sock.close()
+
+    tcp_server = AsyncServer.from_uri(f"tcp://127.0.0.1:{port}")
+    run_task = asyncio.create_task(tcp_server.run(PingHandler))
+    await asyncio.sleep(0.1)
+
+    run_task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await run_task

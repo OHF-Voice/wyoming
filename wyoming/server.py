@@ -1,4 +1,6 @@
 import asyncio
+import contextlib
+import signal
 import sys
 from abc import ABC, abstractmethod
 from functools import partial
@@ -64,6 +66,7 @@ class AsyncServer(ABC):
 
     def __init__(self) -> None:
         self._handlers: Dict[asyncio.Task, AsyncEventHandler] = {}
+        self._stop_requested = False
 
     @abstractmethod
     async def run(self, handler_factory: HandlerFactory) -> None:
@@ -106,13 +109,37 @@ class AsyncServer(ABC):
         """Try to stop all event handlers."""
         await asyncio.gather(*(h.stop() for h in self._handlers.values()))
 
+    def _register_stop_signal(self) -> None:
+        """Gracefully stop the server when SIGTERM is received.
+
+        Not supported on all platforms (e.g. Windows event loops); the
+        server behaves as before where signal handlers are unavailable.
+        """
+        loop = asyncio.get_running_loop()
+        with contextlib.suppress(NotImplementedError, RuntimeError):
+            loop.add_signal_handler(signal.SIGTERM, self._handle_stop_signal, loop)
+
+    def _unregister_stop_signal(self) -> None:
+        loop = asyncio.get_running_loop()
+        with contextlib.suppress(NotImplementedError, RuntimeError, ValueError):
+            loop.remove_signal_handler(signal.SIGTERM)
+
+    def _handle_stop_signal(self, loop: asyncio.AbstractEventLoop) -> None:
+        self._stop_requested = True
+        loop.create_task(self.stop())
+
 
 class AsyncStdioServer(AsyncServer):
     """Wyoming server over stdin/stdout."""
 
+    def __init__(self) -> None:
+        super().__init__()
+        self._reader: Optional[asyncio.StreamReader] = None
+
     async def run(self, handler_factory: HandlerFactory) -> None:
         """Start server and block while running."""
         reader = await async_get_stdin()
+        self._reader = reader
 
         # Get stdout writer.
         # NOTE: This will make print() non-blocking.
@@ -123,13 +150,22 @@ class AsyncStdioServer(AsyncServer):
         writer = asyncio.StreamWriter(writer_transport, writer_protocol, None, loop)
 
         handler = handler_factory(reader, writer)
-        while True:
-            event = await async_read_event(reader)
-            if event is None:
-                break
+        self._register_stop_signal()
+        try:
+            while True:
+                event = await async_read_event(reader)
+                if event is None:
+                    break
 
-            if not (await handler.handle_event(event)):
-                break
+                if not (await handler.handle_event(event)):
+                    break
+        finally:
+            self._unregister_stop_signal()
+
+    def _handle_stop_signal(self, loop: asyncio.AbstractEventLoop) -> None:
+        self._stop_requested = True
+        if self._reader is not None:
+            self._reader.feed_eof()
 
 
 class AsyncTcpServer(AsyncServer):
@@ -147,7 +183,16 @@ class AsyncTcpServer(AsyncServer):
             handler_callback, host=self.host, port=self.port
         )
 
-        await self._server.serve_forever()
+        self._register_stop_signal()
+        try:
+            await self._server.serve_forever()
+        except asyncio.CancelledError:
+            # Server.close() cancels serve_forever(); only swallow the
+            # cancellation caused by the stop signal.
+            if not self._stop_requested:
+                raise
+        finally:
+            self._unregister_stop_signal()
 
     async def start(self, handler_factory: HandlerFactory) -> None:
         """Start server without blocking."""
@@ -184,9 +229,16 @@ class AsyncUnixServer(AsyncServer):
             handler_callback, path=self.socket_path
         )
 
+        self._register_stop_signal()
         try:
             await self._server.serve_forever()
+        except asyncio.CancelledError:
+            # Server.close() cancels serve_forever(); only swallow the
+            # cancellation caused by the stop signal.
+            if not self._stop_requested:
+                raise
         finally:
+            self._unregister_stop_signal()
             # Unlink when we're done
             self.socket_path.unlink(missing_ok=True)
 
