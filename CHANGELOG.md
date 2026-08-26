@@ -1,8 +1,9 @@
 # Changelog
 
-## Unreleased
+## 1.10.1
 
 - Gracefully stop servers on SIGTERM so apps exit cleanly with code 0
+- Fix 8-bit audio conversion and add bias
 
 ## 1.10.0
 
