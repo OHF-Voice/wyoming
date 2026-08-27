@@ -9,11 +9,10 @@ from typing import Set
 from flask import Response, jsonify, request
 
 from wyoming.audio import wav_to_chunks
-from wyoming.client import AsyncClient
 from wyoming.error import Error
 from wyoming.wake import Detect, Detection, NotDetected
 
-from .shared import get_app, get_argument_parser
+from .shared import check_args, get_app, get_argument_parser, get_client
 
 _DIR = Path(__file__).parent
 CONF_PATH = _DIR / "conf" / "wake.yaml"
@@ -24,19 +23,16 @@ def main():
     parser.add_argument("--wake-word-name", action="append")
     parser.add_argument("--samples-per-chunk", type=int, default=1024)
     args = parser.parse_args()
+    check_args(parser, args)
     logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO)
 
     app = get_app("wake", CONF_PATH, args)
 
     @app.route("/api/detect-wake-word", methods=["POST", "GET"])
     async def api_wake() -> Response:
-        uri = request.args.get("uri", args.uri)
-        if not uri:
-            raise ValueError("URI is required")
-
         wake_word_names: Set[str] = set()
 
-        async with AsyncClient.from_uri(uri) as client:
+        async with get_client(args) as client:
             if args.wake_word_name:
                 # From command-line
                 wake_word_names.update(args.wake_word_name)

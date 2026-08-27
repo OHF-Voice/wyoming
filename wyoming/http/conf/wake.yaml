@@ -28,7 +28,7 @@ paths:
       parameters:
         - in: query
           name: uri
-          description: 'URI of Wyoming wake service'
+          description: 'URI of Wyoming wake service. Only allowed if the server was started with --allow-uri-override.'
           schema:
             type: string
         - in: query

@@ -7,13 +7,13 @@ from pathlib import Path
 from typing import Optional
 
 from flask import Response, request
+from werkzeug.exceptions import BadRequest
 
 from wyoming.audio import AudioChunk, AudioStart, AudioStop
-from wyoming.client import AsyncClient
 from wyoming.error import Error
 from wyoming.tts import Synthesize, SynthesizeVoice
 
-from .shared import get_app, get_argument_parser
+from .shared import check_args, get_app, get_argument_parser, get_client
 
 _DIR = Path(__file__).parent
 CONF_PATH = _DIR / "conf" / "tts.yaml"
@@ -24,23 +24,20 @@ def main():
     parser.add_argument("--voice", help="Default voice for synthesis")
     parser.add_argument("--speaker", help="Default voice speaker for synthesis")
     args = parser.parse_args()
+    check_args(parser, args)
     logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO)
 
     app = get_app("tts", CONF_PATH, args)
 
     @app.route("/api/text-to-speech", methods=["POST", "GET"])
     async def api_stt() -> Response:
-        uri = request.args.get("uri", args.uri)
-        if not uri:
-            raise ValueError("URI is required")
-
         if request.method == "POST":
             text = request.data.decode()
         else:
             text = request.args.get("text", "")
 
         if not text:
-            raise ValueError("Text is required")
+            raise BadRequest("Text is required")
 
         voice: Optional[SynthesizeVoice] = None
         voice_name = request.args.get("voice", args.voice)
@@ -49,7 +46,7 @@ def main():
                 name=voice_name, speaker=request.args.get("speaker", args.speaker)
             )
 
-        async with AsyncClient.from_uri(uri) as client:
+        async with get_client(args) as client:
             wav_io = io.BytesIO()
             wav_file = wave.open(wav_io, "wb")
             await client.write_event(Synthesize(text=text, voice=voice).event())
