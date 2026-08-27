@@ -10,10 +10,9 @@ from flask import Response, jsonify, request
 
 from wyoming.asr import Transcribe, Transcript
 from wyoming.audio import wav_to_chunks
-from wyoming.client import AsyncClient
 from wyoming.error import Error
 
-from .shared import get_app, get_argument_parser
+from .shared import check_args, get_app, get_argument_parser, get_client
 
 _DIR = Path(__file__).parent
 CONF_PATH = _DIR / "conf" / "asr.yaml"
@@ -25,18 +24,15 @@ def main():
     parser.add_argument("--language", help="Default language for transcription")
     parser.add_argument("--samples-per-chunk", type=int, default=1024)
     args = parser.parse_args()
+    check_args(parser, args)
     logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO)
 
     app = get_app("asr", CONF_PATH, args)
 
     @app.route("/api/speech-to-text", methods=["POST"])
     async def api_stt() -> Response:
-        uri = request.args.get("uri", args.uri)
-        if not uri:
-            raise ValueError("URI is required")
-
         model_name = request.args.get("model", args.model)
-        language = request.args.get("language", args.model)
+        language = request.args.get("language", args.language)
 
         transcript_names: Optional[List[str]] = None
         transcript_names_str = request.args.get("transcript_names")
@@ -52,7 +48,7 @@ def main():
                 term.strip() for term in transcript_terms_str.split(",") if term.strip()
             ]
 
-        async with AsyncClient.from_uri(uri) as client:
+        async with get_client(args) as client:
             await client.write_event(
                 Transcribe(
                     name=model_name,

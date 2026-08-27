@@ -5,14 +5,14 @@ from pathlib import Path
 from typing import Any, Dict, List, Union
 
 from flask import request
+from werkzeug.exceptions import BadRequest
 
 from wyoming.asr import Transcript
-from wyoming.client import AsyncClient
 from wyoming.error import Error
 from wyoming.handle import Handled, NotHandled
 from wyoming.intent import Intent, IntentsStart, IntentsStop, NotRecognized
 
-from .shared import get_app, get_argument_parser
+from .shared import check_args, get_app, get_argument_parser, get_client
 
 _DIR = Path(__file__).parent
 CONF_PATH = _DIR / "conf" / "intent.yaml"
@@ -22,27 +22,24 @@ def main():
     parser = get_argument_parser()
     parser.add_argument("--language", help="Language for text")
     args = parser.parse_args()
+    check_args(parser, args)
     logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO)
 
     app = get_app("intent", CONF_PATH, args)
 
     @app.route("/api/recognize-intent", methods=["POST", "GET"])
     async def api_recognize_intent() -> Union[Dict[str, Any], List[Dict[str, Any]]]:
-        uri = request.args.get("uri", args.uri)
-        if not uri:
-            raise ValueError("URI is required")
-
         if request.method == "POST":
             text = request.data.decode()
         else:
             text = request.args.get("text", "")
 
         if not text:
-            raise ValueError("Text is required")
+            raise BadRequest("Text is required")
 
         language = request.args.get("language", args.language)
 
-        async with AsyncClient.from_uri(uri) as client:
+        async with get_client(args) as client:
             await client.write_event(Transcript(text=text, language=language).event())
 
             type_name = "unknown"

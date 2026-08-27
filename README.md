@@ -12,6 +12,16 @@ Used in [Home Assistant](https://www.home-assistant.io/integrations/wyoming) for
 
 [![An open standard from the Open Home Foundation](https://www.openhomefoundation.org/badges/ohf-open-standard.png)](https://www.openhomefoundation.org/)
 
+## Security
+
+Wyoming has no authentication or encryption, by design. It is meant for a
+trusted network, and should not be exposed directly to the internet. The same
+applies to the optional HTTP servers (`wyoming.http.*`), which are unauthenticated
+gateways that run on the Flask development server.
+
+See [SECURITY.md](SECURITY.md) for the full security model and for how to report
+a vulnerability.
+
 ## Wyoming Projects
 
 * Audio input/output

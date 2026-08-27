@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.10.2
+
+- HTTP servers now require `--uri` or `--allow-uri-override`
+    - The `uri` query parameter is rejected unless `--allow-uri-override` is set
+    - Request URIs are restricted to `tcp://` and `unix://`
+- HTTP servers no longer return exception details to the client
+- Add `--connect-timeout` (default 10s) and `--read-timeout` (default 300s) to HTTP servers
+- Add optional `connect_timeout` and `read_timeout` to `AsyncClient` (disabled by default)
+- Fix default language for HTTP ASR server using `--model` instead of `--language`
+- Add `SECURITY.md` describing the security model and how to report an issue
+
 ## 1.10.1
 
 - Gracefully stop servers on SIGTERM so apps exit cleanly with code 0
