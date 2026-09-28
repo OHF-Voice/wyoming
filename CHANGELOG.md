@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Add `--language` and the `language` query parameter to the HTTP TTS server (ignored if a voice name is set)
+- HTTP ASR server returns a `chunks` list when the Wyoming service streams the transcript
 
 ## 1.10.2
 

@@ -8,7 +8,13 @@ from typing import List, Optional
 
 from flask import Response, jsonify, request
 
-from wyoming.asr import Transcribe, Transcript
+from wyoming.asr import (
+    Transcribe,
+    Transcript,
+    TranscriptChunk,
+    TranscriptStart,
+    TranscriptStop,
+)
 from wyoming.audio import wav_to_chunks
 from wyoming.error import Error
 
@@ -69,6 +75,10 @@ def main():
                     for chunk in chunks:
                         await client.write_event(chunk.event())
 
+            transcript: Optional[Transcript] = None
+            transcript_chunks: List[str] = []
+            is_streaming = False
+
             while True:
                 event = await client.read_event()
                 if event is None:
@@ -76,13 +86,36 @@ def main():
 
                 if Transcript.is_type(event.type):
                     transcript = Transcript.from_event(event)
-                    return jsonify(transcript.to_dict())
-
-                if Error.is_type(event.type):
+                    if not is_streaming:
+                        # Chunks are not coming
+                        break
+                elif TranscriptStart.is_type(event.type):
+                    # Chunks will follow, so wait for the end of the stream
+                    # instead of returning at the transcript.
+                    is_streaming = True
+                elif TranscriptChunk.is_type(event.type):
+                    transcript_chunks.append(TranscriptChunk.from_event(event).text)
+                elif TranscriptStop.is_type(event.type):
+                    break
+                elif Error.is_type(event.type):
                     error = Error.from_event(event)
                     raise RuntimeError(
                         f"Unexpected error from client: code={error.code}, text={error.text}"
                     )
+
+            if transcript is None:
+                # transcript is required, but fall back to the chunks so a
+                # streaming service that omits it still gets a response.
+                if not is_streaming:
+                    raise RuntimeError("No transcript from service")
+
+                transcript = Transcript(text="".join(transcript_chunks))
+
+            result = transcript.to_dict()
+            if is_streaming:
+                result["chunks"] = transcript_chunks
+
+            return jsonify(result)
 
     app.run(args.host, args.port)
 

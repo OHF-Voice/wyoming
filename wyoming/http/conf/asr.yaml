@@ -58,3 +58,20 @@ paths:
             application/json:
               schema:
                 type: object
+                properties:
+                  text:
+                    type: string
+                    description: 'Text transcription of the spoken audio'
+                  language:
+                    type: string
+                    description: 'Language of the transcription'
+                  context:
+                    type: object
+                    description: 'Context for the next interaction'
+                  chunks:
+                    type: array
+                    description: 'Transcript chunks in the order they were produced. Only present if the Wyoming service streamed the transcript.'
+                    items:
+                      type: string
+                required:
+                  - text
