@@ -23,6 +23,7 @@ def main():
     parser = get_argument_parser()
     parser.add_argument("--voice", help="Default voice for synthesis")
     parser.add_argument("--speaker", help="Default voice speaker for synthesis")
+    parser.add_argument("--language", help="Default voice language for synthesis")
     args = parser.parse_args()
     check_args(parser, args)
     logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO)
@@ -41,10 +42,13 @@ def main():
 
         voice: Optional[SynthesizeVoice] = None
         voice_name = request.args.get("voice", args.voice)
+        language = request.args.get("language", args.language)
         if voice_name:
             voice = SynthesizeVoice(
                 name=voice_name, speaker=request.args.get("speaker", args.speaker)
             )
+        elif language:
+            voice = SynthesizeVoice(language=language)
 
         async with get_client(args) as client:
             wav_io = io.BytesIO()

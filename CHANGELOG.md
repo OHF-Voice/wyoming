@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Add `--language` and the `language` query parameter to the HTTP TTS server (ignored if a voice name is set)
+
 ## 1.10.2
 
 - HTTP servers now require `--uri` or `--allow-uri-override`

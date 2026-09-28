@@ -40,6 +40,11 @@ paths:
           description: 'Name of voice speaker to use for synthesis'
           schema:
             type: string
+        - in: query
+          name: language
+          description: 'Language of voice to use for synthesis. Ignored if voice is set.'
+          schema:
+            type: string
       responses:
         '200':
           description: OK
@@ -70,6 +75,11 @@ paths:
         - in: query
           name: speaker
           description: 'Name of voice speaker to use for synthesis'
+          schema:
+            type: string
+        - in: query
+          name: language
+          description: 'Language of voice to use for synthesis. Ignored if voice is set.'
           schema:
             type: string
       responses:
