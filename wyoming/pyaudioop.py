@@ -134,7 +134,10 @@ def _set_sample32(
 
 
 def bias(
-    fragment: BufferType, width: int, bias: int, endian: Endian = "little"
+    fragment: BufferType,
+    width: int,
+    bias: int,  # pylint: disable=redefined-outer-name
+    endian: Endian = "little",
 ) -> BufferType:
     fragment_length = len(fragment)
     check_parameters(fragment_length, width)
