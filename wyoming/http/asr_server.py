@@ -105,11 +105,13 @@ def main():
 
             if transcript is None:
                 # transcript is required, but fall back to the chunks so a
-                # streaming service that omits it still gets a response.
-                if not is_streaming:
+                # streaming service that omits it still gets a response. Each
+                # chunk is the transcript so far, so the last one is the whole
+                # transcript.
+                if not is_streaming or not transcript_chunks:
                     raise RuntimeError("No transcript from service")
 
-                transcript = Transcript(text="".join(transcript_chunks))
+                transcript = Transcript(text=transcript_chunks[-1])
 
             result = transcript.to_dict()
             if is_streaming:

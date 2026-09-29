@@ -1,7 +1,10 @@
 # Changelog
 
-## Unreleased
+## 1.11.0
 
+- `transcript-chunk` now carries the transcript so far instead of a fragment to append
+    - Each chunk replaces the previous one, so an ASR system can revise words it has already reported
+    - Services advertising `supports_transcript_streaming` must send whole transcripts from this version on
 - Add `--language` and the `language` query parameter to the HTTP TTS server (ignored if a voice name is set)
 - HTTP ASR server returns a `chunks` list when the Wyoming service streams the transcript
 

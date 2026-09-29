@@ -193,7 +193,8 @@ Streaming:
     * `language` - language of transcript (string, optional)
     * `context` - context from previous interactions (object, optional)
 2. `transcript-chunk`
-    * `text` - part of transcript (string, required)
+    * `text` - transcript so far, including text that may still be revised (string, required)
+    * Each chunk replaces the previous one instead of being appended to it
 3. Original `transcript` event must be sent for backwards compatibility
 4. `transcript-stop` - end of stream
 
@@ -393,7 +394,7 @@ Streaming:
     * Send audio chunks until silence is detected
 4. &larr; `transcript-start` (required)
 5. &larr; `transcript-chunk` (required)
-    * Send transcript chunks as they're produced
+    * Send the transcript so far as it's produced and revised
 6. &rarr; `audio-stop` (required)
 7. &larr; `transcript` (required)
     * Sent for backwards compatibility

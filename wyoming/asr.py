@@ -174,10 +174,14 @@ class TranscriptStart(Eventable):
 
 @dataclass
 class TranscriptChunk(Eventable):
-    """Chunk of streaming transcription response from ASR system"""
+    """Streaming transcription response from ASR system"""
 
     text: str
-    """Chunk of transcript text."""
+    """Transcript so far, including text the ASR system may still revise.
+
+    Each chunk replaces the previous one instead of being appended to it, so a
+    chunk may correct words that an earlier chunk had already reported.
+    """
 
     @staticmethod
     def is_type(event_type: str) -> bool:
