@@ -1,0 +1,38 @@
+site_name: Wyoming
+site_description: Lightweight protocol for open voice assistants
+site_author: Open Home Foundation / Rhasspy
+repo_url: https://github.com/rhasspy/wyoming
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.tabs
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+
+plugins:  
+  - mermaid2
+
+nav:
+  - Home: index.md
+  - 01 - Introduction: 01-introduction/README.md
+  - 02 - Architecture: 02-architecture/README.md
+  - 03 - Protocol: 03-protocol/README.md
+  - 04 - Installation: 04-installation/README.md
+  - 05 - API Reference:
+      - Summary: 05-api-reference/README-summary.md
+      - Event Format: 05-api-reference/event-format.md
+      - Event Types: 05-api-reference/event-types.md
+      - Modules: 05-api-reference/modules.md
+      - Timers: 05-api-reference/timers.md
+      - Flow Diagrams: 05-api-reference/diagrams.md
+  - 06 - HTTP Integration: 06-http/README.md
+  - 07 - Examples: 07-examples/README.md
+  - 08 - Deployment: 08-advanced/README.md
+  - 09 - Contributing: 08-contributing/README.md
+  - 10 - Roadmap: 09-roadmap/README.md
+  - 11 - Appendix: 10-appendix/README.md
+
