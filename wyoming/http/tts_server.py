@@ -43,12 +43,14 @@ def main():
         voice: Optional[SynthesizeVoice] = None
         voice_name = request.args.get("voice", args.voice)
         language = request.args.get("language", args.language)
-        if voice_name:
+        if voice_name or language:
             voice = SynthesizeVoice(
-                name=voice_name, speaker=request.args.get("speaker", args.speaker)
+                name=voice_name or None,
+                language=language or None,
+                speaker=(
+                    request.args.get("speaker", args.speaker) if voice_name else None
+                ),
             )
-        elif language:
-            voice = SynthesizeVoice(language=language)
 
         async with get_client(args) as client:
             wav_io = io.BytesIO()
