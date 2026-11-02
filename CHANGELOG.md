@@ -2,13 +2,17 @@
 
 ## 1.11.0
 
+- Require Python 3.10 or later (drop 3.8 and 3.9)
+- `voice` in `synthesize` and `synthesize-start` now carries `name`, `language`, and `speaker` together
+    - Previously `language` was dropped whenever `name` was set
+    - `language` is the language of the text, and selects a voice if `name` is not set
 - Add optional `continue_conversation` to `handled`
     - True tells the client to listen for a response without a wake word
     - Carried on `handled` only, which streaming services must send anyway
 - `transcript-chunk` now carries the transcript so far instead of a fragment to append
     - Each chunk replaces the previous one, so an ASR system can revise words it has already reported
     - Services advertising `supports_transcript_streaming` must send whole transcripts from this version on
-- Add `--language` and the `language` query parameter to the HTTP TTS server (ignored if a voice name is set)
+- Add `--language` and the `language` query parameter to the HTTP TTS server (sent along with the voice name, if set)
 - HTTP ASR server returns a `chunks` list when the Wyoming service streams the transcript
 
 ## 1.10.2

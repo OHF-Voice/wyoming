@@ -42,7 +42,7 @@ paths:
             type: string
         - in: query
           name: language
-          description: 'Language of voice to use for synthesis. Ignored if voice is set.'
+          description: 'Language of text. Used to select a voice if voice is not set.'
           schema:
             type: string
       responses:
@@ -79,7 +79,7 @@ paths:
             type: string
         - in: query
           name: language
-          description: 'Language of voice to use for synthesis. Ignored if voice is set.'
+          description: 'Language of text. Used to select a voice if voice is not set.'
           schema:
             type: string
       responses:

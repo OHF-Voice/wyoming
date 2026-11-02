@@ -206,7 +206,7 @@ Synthesize audio from text.
     * `text` - text to speak (string, required)
     * `voice` - use a specific voice (optional)
         * `name` - name of voice (string, optional)
-        * `language` - language of voice (string, optional)
+        * `language` - language of text, used to select a voice if `name` is not set (string, optional)
         * `speaker` - speaker of voice (string, optional)
     * `text_format` - format of text (string, optional)
         * Can be "text", "ssml", or something else
@@ -217,7 +217,7 @@ Streaming:
     * `context` - context from previous interactions (object, optional)
     * `voice` - use a specific voice (optional)
         * `name` - name of voice (string, optional)
-        * `language` - language of voice (string, optional)
+        * `language` - language of text, used to select a voice if `name` is not set (string, optional)
         * `speaker` - speaker of voice (string, optional)
     * `text_format` - format of text (string, optional)
         * Can be "text", "ssml", or something else
