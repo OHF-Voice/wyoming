@@ -18,7 +18,6 @@ def test_voice_preserves_language_with_name_and_speaker() -> None:
     assert SynthesizeVoice.from_dict(voice.to_dict()) == voice
 
 
-
 def test_text_format() -> None:
     assert Synthesize.from_event(
         Event("synthesize", {"text": "test text", "text_format": "ssml"})
