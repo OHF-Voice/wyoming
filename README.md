@@ -74,6 +74,7 @@ Send raw audio and indicate begin/end of audio streams.
     * `channels` - number of channels (int, required)
     * `timestamp` - timestamp of audio chunk in milliseconds (int, optional)
     * Payload is raw PCM audio samples
+    * The protocol does not encode sample type or endianness; peers must agree on the PCM representation out of band. `width` is the number of bytes in each sample.
 * `audio-start` - start of an audio stream
     * `rate` - sample rate in hertz (int, required)
     * `width` - sample width in bytes (int, required)
