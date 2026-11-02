@@ -249,9 +249,10 @@ def main() -> None:
         rate=args.rate, width=args.width, channels=args.channels
     )
 
-    with io.BytesIO(
-        sys.stdin.buffer.read()
-    ) as input_wav_io, io.BytesIO() as output_wav_io:
+    with (
+        io.BytesIO(sys.stdin.buffer.read()) as input_wav_io,
+        io.BytesIO() as output_wav_io,
+    ):
         input_wav_file: wave.Wave_read = wave.open(input_wav_io, "rb")
         output_wav_file: wave.Wave_write = wave.open(output_wav_io, "wb")
         with input_wav_file, output_wav_file:
