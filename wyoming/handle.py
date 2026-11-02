@@ -23,6 +23,9 @@ class Handled(Eventable):
     context: Optional[Dict[str, Any]] = None
     """Context for next interaction."""
 
+    continue_conversation: Optional[bool] = None
+    """True if the client should listen for a response without a wake word."""
+
     @staticmethod
     def is_type(event_type: str) -> bool:
         return event_type == _HANDLED_TYPE
@@ -33,6 +36,8 @@ class Handled(Eventable):
             data["text"] = self.text
         if self.context is not None:
             data["context"] = self.context
+        if self.continue_conversation is not None:
+            data["continue_conversation"] = self.continue_conversation
 
         return Event(type=_HANDLED_TYPE, data=data)
 
@@ -41,7 +46,11 @@ class Handled(Eventable):
         if not event.data:
             return Handled()
 
-        return Handled(text=event.data.get("text"), context=event.data.get("context"))
+        return Handled(
+            text=event.data.get("text"),
+            context=event.data.get("context"),
+            continue_conversation=event.data.get("continue_conversation"),
+        )
 
 
 @dataclass

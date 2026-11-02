@@ -2,6 +2,9 @@
 
 ## 1.11.0
 
+- Add optional `continue_conversation` to `handled`
+    - True tells the client to listen for a response without a wake word
+    - Carried on `handled` only, which streaming services must send anyway
 - `transcript-chunk` now carries the transcript so far instead of a fragment to append
     - Each chunk replaces the previous one, so an ASR system can revise words it has already reported
     - Services advertising `supports_transcript_streaming` must send whole transcripts from this version on
