@@ -281,6 +281,7 @@ Handle structured intents or text directly.
     * `text` - response for user (string, optional)
     * `context` - context for next interactions (object, optional)
     * `continue_conversation` - true if the client should listen for a response without a wake word (bool, optional)
+    * `acknowledge` - true if a short sound is enough instead of speaking `text`, which is still the response (bool, optional)
 * `not-handled` - response when intent was not handled
     * `text` - response for user (string, optional)
     * `context` - context for next interactions (object, optional)
@@ -292,7 +293,7 @@ Streaming:
 2. `handled-chunk`
     * `text` - part of response (string, required)
 3. Original `handled` message must be sent for backwards compatibility
-    * `continue_conversation` is only carried here, not on `handled-stop`
+    * `continue_conversation` and `acknowledge` are only carried here, not on `handled-stop`
 4. `handled-stop` - end of stream
 
 ### Audio Output
@@ -486,7 +487,7 @@ Streaming text only (successful):
     * Chunk of response text
 4. &larr; `handled` (required)
     * Sent for backwards compatibility
-    * Carries `continue_conversation`
+    * Carries `continue_conversation` and `acknowledge`
 5. &larr; `handled-stop` (required)
     
 ### Audio Output
