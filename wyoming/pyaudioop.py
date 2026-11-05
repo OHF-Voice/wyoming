@@ -10,7 +10,7 @@ import math
 import struct
 from typing import Final, List, Literal, Optional, Tuple, Union
 
-BufferType = Union[bytes, bytearray]
+BufferType = Union[bytes, bytearray, memoryview]
 Endian = Literal["big", "little"]
 State = Tuple[int, Tuple[Tuple[int, ...], ...]]
 
