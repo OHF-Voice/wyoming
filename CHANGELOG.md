@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.12.0
+
+- Add optional `acknowledge` to `handled`
+    - True tells the client a short sound is enough instead of speaking `text`
+    - `text` is still the response, for clients that show it
+
 ## 1.11.0
 
 - Require Python 3.10 or later (drop 3.8 and 3.9)
