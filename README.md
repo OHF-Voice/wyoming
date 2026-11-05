@@ -60,6 +60,17 @@ a vulnerability.
     * Immediately follows additional data or header `\n` if no additional data
 
 
+## Context
+
+Many events carry a `context` object. Its keys are free-form, and programs should ignore keys they don't know. Clients send these when they know them:
+
+* `conversation_id` - ongoing conversation (string)
+* `device_id` - device the request came from (string)
+* `satellite_id` - voice satellite the request came from (string)
+
+In Home Assistant, `device_id` is a device registry id and `satellite_id` is an `assist_satellite` entity id.
+
+
 ## Event Types
 
 Available events with `type` and fields.
