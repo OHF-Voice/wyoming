@@ -3,7 +3,13 @@
 import io
 import wave
 
-from wyoming.audio import AudioChunk, AudioChunkConverter, wav_to_chunks
+from wyoming.audio import (
+    AudioChunk,
+    AudioChunkConverter,
+    AudioStart,
+    AudioStop,
+    wav_to_chunks,
+)
 
 
 def test_chunk_converter() -> None:
@@ -74,3 +80,45 @@ def test_wav_to_chunks() -> None:
             assert chunk.width == 2
             assert chunk.channels == 1
             assert len(chunk.audio) == 1000 * 2  # 1000 samples
+
+
+def _wav_bytes(rate: int, num_samples: int) -> bytes:
+    with io.BytesIO() as wav_io:
+        wav_write: wave.Wave_write = wave.open(wav_io, "wb")
+        with wav_write:
+            wav_write.setframerate(rate)
+            wav_write.setsampwidth(2)
+            wav_write.setnchannels(1)
+            wav_write.writeframes(bytes(num_samples * 2))
+
+        return wav_io.getvalue()
+
+
+def test_wav_to_chunks_start_timestamp() -> None:
+    """Test that the start event uses the timestamp argument."""
+    with io.BytesIO(_wav_bytes(16000, 16000)) as wav_io:
+        wav_read: wave.Wave_read = wave.open(wav_io, "rb")
+        events = list(
+            wav_to_chunks(
+                wav_read, samples_per_chunk=1000, timestamp=5000, start_event=True
+            )
+        )
+
+    assert isinstance(events[0], AudioStart)
+    assert events[0].timestamp == 5000
+    assert isinstance(events[1], AudioChunk)
+    assert events[1].timestamp == 5000
+
+
+def test_wav_to_chunks_timestamps_do_not_drift() -> None:
+    """Test that chunk timestamps do not lose milliseconds at every chunk."""
+    # 1024 samples at 22050 Hz is 46.44 ms, not a whole number of milliseconds
+    with io.BytesIO(_wav_bytes(22050, 22050)) as wav_io:  # 1 sec
+        wav_read: wave.Wave_read = wave.open(wav_io, "rb")
+        events = list(wav_to_chunks(wav_read, samples_per_chunk=1024, stop_event=True))
+
+    chunks = [event for event in events if isinstance(event, AudioChunk)]
+    assert chunks[-1].timestamp == (21 * 1024 * 1000) // 22050
+
+    assert isinstance(events[-1], AudioStop)
+    assert events[-1].timestamp == 1000
