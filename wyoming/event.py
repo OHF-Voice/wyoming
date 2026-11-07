@@ -103,6 +103,9 @@ async def async_read_event(reader: asyncio.StreamReader) -> Optional[Event]:
         return Event(
             type=event_dict[_TYPE], data=event_dict.get(_DATA, {}), payload=payload
         )
+    except asyncio.IncompleteReadError:
+        # Stream closed before all data was read
+        pass
     except (KeyboardInterrupt, ValueError):
         pass
 
