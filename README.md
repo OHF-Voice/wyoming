@@ -84,7 +84,9 @@ Send raw audio and indicate begin/end of audio streams.
     * `width` - sample width in bytes (int, required)
     * `channels` - number of channels (int, required)
     * `timestamp` - timestamp of audio chunk in milliseconds (int, optional)
-    * Payload is raw PCM audio samples
+    * Payload is raw PCM audio samples, interleaved by channel
+    * Samples are little-endian signed integers that are `width` bytes each (unsigned when `width` is 1, as in WAV files)
+    * Floating-point samples are not supported; convert to integer samples (typically 16-bit) before sending
 * `audio-start` - start of an audio stream
     * `rate` - sample rate in hertz (int, required)
     * `width` - sample width in bytes (int, required)
