@@ -8,6 +8,7 @@ Only supports:
 
 import math
 import struct
+import sys
 from typing import Final, List, Literal, Optional, Tuple, Union
 
 BufferType = Union[bytes, bytearray, memoryview]
@@ -232,7 +233,7 @@ def ratecv(
     # output_frames = q * outrate * bytes_per_frame
 
     result = bytearray(output_frames * bytes_per_frame)
-    struct_format = _SIGNED_FORMATS[width]
+    endian: Endian = sys.byteorder
 
     input_index = 0
     output_index = 0
@@ -248,12 +249,12 @@ def ratecv(
 
             for chan in range(0, nchannels):
                 prev_i[chan] = cur_i[chan]
-                cur_i[chan] = struct.unpack_from(struct_format, fragment, input_index)[
-                    0
-                ]
+                cur_i[chan] = _get_sample32(fragment, width, input_index, endian)
                 input_index += width
-                cur_i[chan] = ((weightA * cur_i[chan]) + (weightB * prev_i[chan])) // (
-                    weightA + weightB
+                # Truncate toward zero like the C cast in audioop
+                cur_i[chan] = int(
+                    ((weightA * cur_i[chan]) + (weightB * prev_i[chan]))
+                    / (weightA + weightB)
                 )
 
             input_frames -= 1
@@ -267,7 +268,7 @@ def ratecv(
                     )
                     / float(outrate)
                 )
-                struct.pack_into(struct_format, result, output_index, sample)
+                _set_sample32(result, width, output_index, sample, endian)
                 output_index += width
             d -= inrate
 

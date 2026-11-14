@@ -168,19 +168,57 @@ def test_ratecv() -> None:
         assert d == d0
         assert state == state0
 
-    # Not sure why this is still failing, but the crackling is gone!
-    # expected = {
-    #     1: packs[1](0, 0x0D, 0x37, -0x26, 0x55, -0x4B, -0x14),
-    #     2: packs[2](0, 0x0DA7, 0x3777, -0x2630, 0x5673, -0x4A64, -0x129A),
-    #     3: packs[3](0, 0x0DA740, 0x377776, -0x262FCA, 0x56740C, -0x4A62FD, -0x1298C0),
-    #     4: packs[4](
-    #         0, 0x0DA740DA, 0x37777776, -0x262FC962, 0x56740DA6, -0x4A62FC96, -0x1298BF26
-    #     ),
-    # }
-    # for w in 1, 2, 4:
-    #     assert (
-    #         pyaudioop.ratecv(datas[w], w, 1, 8000, 8000, None, 3, 1)[0] == expected[w]
-    #     )
-    #     assert (
-    #         pyaudioop.ratecv(datas[w], w, 1, 8000, 8000, None, 30, 10)[0] == expected[w]
-    #     )
+    expected = {
+        1: packs[1](0, 0x0D, 0x37, -0x26, 0x55, -0x4B, -0x14),
+        2: packs[2](0, 0x0DA7, 0x3777, -0x2630, 0x5673, -0x4A64, -0x129A),
+        3: packs[3](0, 0x0DA740, 0x377776, -0x262FCA, 0x56740C, -0x4A62FD, -0x1298C0),
+        4: packs[4](
+            0, 0x0DA740DA, 0x37777776, -0x262FC962, 0x56740DA6, -0x4A62FC96, -0x1298BF26
+        ),
+    }
+    for w in 1, 2, 4:
+        assert (
+            pyaudioop.ratecv(datas[w], w, 1, 8000, 8000, None, 3, 1)[0] == expected[w]
+        )
+        assert (
+            pyaudioop.ratecv(datas[w], w, 1, 8000, 8000, None, 30, 10)[0] == expected[w]
+        )
+
+    # Values from audioop.ratecv on Python 3.12
+    expected = {
+        1: packs[1](
+            0, 0x09, 0x12, 0x2B, 0x45, 0, -0x45, 0x1D, 0x7F, -0x01, -0x80, -0x41, -0x01
+        ),
+        2: packs[2](
+            0,
+            0x091A,
+            0x1234,
+            0x2BCD,
+            0x4567,
+            0,
+            -0x4567,
+            0x1D4C,
+            0x7FFF,
+            -0x0001,
+            -0x8000,
+            -0x4001,
+            -0x0001,
+        ),
+        4: packs[4](
+            0,
+            0x091A2B3C,
+            0x12345678,
+            0x2BCDF011,
+            0x456789AB,
+            0,
+            -0x456789AB,
+            0x1D4C3B2A,
+            0x7FFFFFFF,
+            0,
+            -0x80000000,
+            -0x40000000,
+            -0x00000001,
+        ),
+    }
+    for w in 1, 2, 4:
+        assert pyaudioop.ratecv(datas[w], w, 1, 8000, 16000, None)[0] == expected[w]
