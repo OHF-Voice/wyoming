@@ -251,10 +251,13 @@ def ratecv(
                 prev_i[chan] = cur_i[chan]
                 cur_i[chan] = _get_sample32(fragment, width, input_index, endian)
                 input_index += width
-                # Truncate toward zero like the C cast in audioop
+                # Filter in doubles and truncate toward zero, like the C code in audioop
                 cur_i[chan] = int(
-                    ((weightA * cur_i[chan]) + (weightB * prev_i[chan]))
-                    / (weightA + weightB)
+                    (
+                        (float(weightA) * float(cur_i[chan]))
+                        + (float(weightB) * float(prev_i[chan]))
+                    )
+                    / (float(weightA) + float(weightB))
                 )
 
             input_frames -= 1

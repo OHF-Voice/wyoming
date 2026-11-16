@@ -222,3 +222,14 @@ def test_ratecv() -> None:
     }
     for w in 1, 2, 4:
         assert pyaudioop.ratecv(datas[w], w, 1, 8000, 16000, None)[0] == expected[w]
+
+
+def test_ratecv_large_weights() -> None:
+    """The filter step rounds like audioop's double arithmetic."""
+    # Values from audioop.ratecv on Python 3.12
+    state = (-1, ((0, 698938572),))
+    fragment, new_state = pyaudioop.ratecv(
+        packs[4](1534616841), 4, 1, 8000, 8000, state, 465065805, 963845476
+    )
+    assert fragment == packs[4](970925637)
+    assert new_state == (-1, ((698938572, 970925637),))
