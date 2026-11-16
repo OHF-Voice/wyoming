@@ -1,13 +1,14 @@
 """Server tests."""
 
 import asyncio
+import gc
 import logging
 import os
 import signal
 import socket
 import tempfile
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 import pytest
 
@@ -192,6 +193,7 @@ async def test_client_disconnect_propagates_to_handler(
 ) -> None:
     """A client disconnect mid-write should surface to handle_event and not
     leave an unretrieved task exception or emit an error log."""
+    # pylint: disable=protected-access
     handlers: List[DisconnectAwareHandler] = []
 
     def factory(
@@ -257,6 +259,25 @@ async def test_client_disconnect_propagates_to_handler(
     ]
     assert not unhandled, unhandled
 
+    # The server must have retrieved the task's exception. Otherwise asyncio
+    # reports "Task exception was never retrieved" when the task is freed.
+    loop = asyncio.get_running_loop()
+    loop_errors: List[Dict[str, Any]] = []
+    old_exception_handler = loop.get_exception_handler()
+    loop.set_exception_handler(lambda _loop, context: loop_errors.append(context))
+    try:
+        del server_task, server_tasks
+        gc.collect()
+    finally:
+        loop.set_exception_handler(old_exception_handler)
+
+    never_retrieved = [
+        context
+        for context in loop_errors
+        if "never retrieved" in context.get("message", "")
+    ]
+    assert not never_retrieved, never_retrieved
+
     await tcp_server.stop()
 
 
@@ -267,6 +288,7 @@ async def test_handler_done_silences_incomplete_read(
     """asyncio.IncompleteReadError surfaces when a client disconnects
     mid-readexactly. _handler_done must treat it as an expected disconnect
     and not log it as 'Unhandled exception'."""
+    # pylint: disable=protected-access
 
     class _ReadingHandler(AsyncEventHandler):
         async def handle_event(self, event: Event) -> bool:
