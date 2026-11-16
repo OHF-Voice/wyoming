@@ -215,8 +215,10 @@ def wav_to_chunks(
     channels = wav_file.getnchannels()
 
     if start_event:
-        yield AudioStart(rate=rate, width=width, channels=channels, timestamp=0)
+        yield AudioStart(rate=rate, width=width, channels=channels, timestamp=timestamp)
 
+    # Count samples so rounding each chunk to whole milliseconds doesn't add up
+    samples = 0
     audio_bytes = wav_file.readframes(samples_per_chunk)
     while audio_bytes:
         chunk = AudioChunk(
@@ -224,14 +226,14 @@ def wav_to_chunks(
             width=width,
             channels=channels,
             audio=audio_bytes,
-            timestamp=timestamp,
+            timestamp=timestamp + (samples * 1_000) // rate,
         )
         yield chunk
-        timestamp += chunk.milliseconds
+        samples += chunk.samples
         audio_bytes = wav_file.readframes(samples_per_chunk)
 
     if stop_event:
-        yield AudioStop(timestamp=timestamp)
+        yield AudioStop(timestamp=timestamp + (samples * 1_000) // rate)
 
 
 # -----------------------------------------------------------------------------
