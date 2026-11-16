@@ -172,7 +172,7 @@ class AudioChunkConverter:
         if (self.channels is not None) and (chunk.channels != self.channels):
             # Convert to mono or stereo
             if self.channels == 1:
-                audio_bytes = audioop.tomono(audio_bytes, width, 1.0, 1.0)
+                audio_bytes = audioop.tomono(audio_bytes, width, 0.5, 0.5)
             elif self.channels == 2:
                 audio_bytes = audioop.tostereo(audio_bytes, width, 1.0, 1.0)
             else:
