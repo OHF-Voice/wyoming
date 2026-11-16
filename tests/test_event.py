@@ -1,5 +1,6 @@
 """Test event reading/writing."""
 
+import asyncio
 import io
 import json
 from typing import Iterable
@@ -270,3 +271,26 @@ async def test_async_read_event_no_data() -> None:
     reader = FakeStreamReader(event_bytes)
     event = await async_read_event(reader)  # type: ignore
     assert event == Event(type="test-event")
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("missing", ["data", "payload"])
+async def test_async_read_event_stream_closed(missing: str) -> None:
+    """Test asynchronous event reading when the stream closes mid-event."""
+    header = {
+        "type": "test-event",
+        "version": wyoming_version,
+        "data_length": len(DATA_BYTES),
+        "payload_length": len(PAYLOAD),
+    }
+    header_bytes = json.dumps(header, ensure_ascii=False).encode("utf-8")
+
+    reader = asyncio.StreamReader()
+    reader.feed_data(header_bytes + b"\n")
+    if missing == "data":
+        reader.feed_data(DATA_BYTES[:-1])
+    else:
+        reader.feed_data(DATA_BYTES + PAYLOAD[:-1])
+    reader.feed_eof()
+
+    assert (await async_read_event(reader)) is None
