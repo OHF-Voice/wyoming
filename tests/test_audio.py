@@ -122,3 +122,24 @@ def test_wav_to_chunks_timestamps_do_not_drift() -> None:
 
     assert isinstance(events[-1], AudioStop)
     assert events[-1].timestamp == 1000
+
+
+def test_chunk_converter_stereo_to_mono_averages() -> None:
+    """Stereo to mono averages the channels instead of summing them."""
+    left, right = 20000, 10000
+    stereo = left.to_bytes(2, "little", signed=True) + right.to_bytes(
+        2, "little", signed=True
+    )
+
+    converter = AudioChunkConverter(channels=1)
+    mono_chunk = converter.convert(
+        AudioChunk(rate=16000, width=2, channels=2, audio=stereo * 10)
+    )
+
+    assert mono_chunk.channels == 1
+    assert len(mono_chunk.audio) == 10 * 2
+    samples = [
+        int.from_bytes(mono_chunk.audio[i : i + 2], "little", signed=True)
+        for i in range(0, len(mono_chunk.audio), 2)
+    ]
+    assert samples == [(left + right) // 2] * 10

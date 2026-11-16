@@ -60,6 +60,17 @@ a vulnerability.
     * Immediately follows additional data or header `\n` if no additional data
 
 
+## Context
+
+Many events carry a `context` object. Its keys are free-form, and programs should ignore keys they don't know. Clients send these when they know them:
+
+* `conversation_id` - ongoing conversation (string)
+* `device_id` - device the request came from (string)
+* `satellite_id` - voice satellite the request came from (string)
+
+In Home Assistant, `device_id` is a device registry id and `satellite_id` is an `assist_satellite` entity id.
+
+
 ## Event Types
 
 Available events with `type` and fields.
@@ -73,7 +84,9 @@ Send raw audio and indicate begin/end of audio streams.
     * `width` - sample width in bytes (int, required)
     * `channels` - number of channels (int, required)
     * `timestamp` - timestamp of audio chunk in milliseconds (int, optional)
-    * Payload is raw PCM audio samples
+    * Payload is raw PCM audio samples, interleaved by channel
+    * Samples are little-endian signed integers that are `width` bytes each (unsigned when `width` is 1, as in WAV files)
+    * Floating-point samples are not supported; convert to integer samples (typically 16-bit) before sending
 * `audio-start` - start of an audio stream
     * `rate` - sample rate in hertz (int, required)
     * `width` - sample width in bytes (int, required)
@@ -281,6 +294,7 @@ Handle structured intents or text directly.
     * `text` - response for user (string, optional)
     * `context` - context for next interactions (object, optional)
     * `continue_conversation` - true if the client should listen for a response without a wake word (bool, optional)
+    * `acknowledge` - true if a short sound is enough instead of speaking `text`, which is still the response (bool, optional)
 * `not-handled` - response when intent was not handled
     * `text` - response for user (string, optional)
     * `context` - context for next interactions (object, optional)
@@ -292,7 +306,7 @@ Streaming:
 2. `handled-chunk`
     * `text` - part of response (string, required)
 3. Original `handled` message must be sent for backwards compatibility
-    * `continue_conversation` is only carried here, not on `handled-stop`
+    * `continue_conversation` and `acknowledge` are only carried here, not on `handled-stop`
 4. `handled-stop` - end of stream
 
 ### Audio Output
@@ -486,7 +500,7 @@ Streaming text only (successful):
     * Chunk of response text
 4. &larr; `handled` (required)
     * Sent for backwards compatibility
-    * Carries `continue_conversation`
+    * Carries `continue_conversation` and `acknowledge`
 5. &larr; `handled-stop` (required)
     
 ### Audio Output

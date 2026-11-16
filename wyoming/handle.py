@@ -26,6 +26,9 @@ class Handled(Eventable):
     continue_conversation: Optional[bool] = None
     """True if the client should listen for a response without a wake word."""
 
+    acknowledge: Optional[bool] = None
+    """True if a short sound is enough instead of speaking the text."""
+
     @staticmethod
     def is_type(event_type: str) -> bool:
         return event_type == _HANDLED_TYPE
@@ -38,6 +41,8 @@ class Handled(Eventable):
             data["context"] = self.context
         if self.continue_conversation is not None:
             data["continue_conversation"] = self.continue_conversation
+        if self.acknowledge is not None:
+            data["acknowledge"] = self.acknowledge
 
         return Event(type=_HANDLED_TYPE, data=data)
 
@@ -50,6 +55,7 @@ class Handled(Eventable):
             text=event.data.get("text"),
             context=event.data.get("context"),
             continue_conversation=event.data.get("continue_conversation"),
+            acknowledge=event.data.get("acknowledge"),
         )
 
 

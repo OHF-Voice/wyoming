@@ -265,6 +265,7 @@ TEST_DATA: Dict[str, Dict[str, Any]] = {
         "text": TEST_TEXT,
         "context": TEST_CONTEXT,
         "continue_conversation": True,
+        "acknowledge": True,
     },
     "HandledStart": {"context": TEST_CONTEXT},
     "HandledChunk": {"text": TEST_TEXT},

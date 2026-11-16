@@ -49,11 +49,11 @@ disallow_untyped_defs = true
 
 [project.optional-dependencies]
 dev = [
-    "black==22.12.0",
-    "flake8==7.0.0",
-    "isort==5.11.3",
-    "mypy==0.991",
-    "pylint==2.15.9",
+    "black==26.10.1",
+    "flake8==7.4.1",
+    "isort==9.0.2",
+    "mypy==2.4.1",
+    "pylint==4.1.3",
     "pytest==7.4.4",
     "pytest-asyncio==0.23.3",
     "build==1.2.2.post1",
