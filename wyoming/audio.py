@@ -1,6 +1,7 @@
 """Audio input/output."""
 
 import argparse
+import array
 import io
 import sys
 import wave
@@ -208,19 +209,52 @@ class AudioChunkConverter:
         )
 
 
-def _average_channels(audio: bytes, width: int, channels: int) -> bytes:
-    """Average each frame's channels into one sample (unsigned when width is 1)."""
-    signed = width > 1
-    frame_size = width * channels
-    mono = bytearray()
-    for frame_start in range(0, len(audio) - frame_size + 1, frame_size):
-        total = sum(
-            int.from_bytes(audio[i : i + width], "little", signed=signed)
-            for i in range(frame_start, frame_start + frame_size, width)
-        )
-        mono += (total // channels).to_bytes(width, "little", signed=signed)
+_ARRAY_TYPECODES = {1: "B", 2: "h", 4: "i"}
 
-    return bytes(mono)
+
+def _average_channels(audio: bytes, width: int, channels: int) -> bytes:
+    """Average each frame's channels into one sample (unsigned when width is 1).
+
+    Samples are little-endian. A trailing partial frame is dropped.
+    """
+    frame_size = width * channels
+    audio = audio[: len(audio) - (len(audio) % frame_size)]
+
+    if width == 3:
+        # No 24-bit array type: widen to 32-bit by adding a zero low byte
+        # (value << 8), average, and drop the low byte again (>> 8). Flooring
+        # commutes with the shift, so this matches averaging the 24-bit values.
+        wide = bytearray(len(audio) // 3 * 4)
+        for byte in range(3):
+            wide[byte + 1 :: 4] = audio[byte::3]
+
+        mono_wide = _average_channels(bytes(wide), 4, channels)
+        narrow = bytearray(len(mono_wide) // 4 * 3)
+        for byte in range(3):
+            narrow[byte::3] = mono_wide[byte + 1 :: 4]
+
+        return bytes(narrow)
+
+    typecode = _ARRAY_TYPECODES.get(width)
+    if typecode is None:
+        raise ValueError(f"Unsupported sample width: {width}")
+
+    samples = array.array(typecode)
+    if samples.itemsize != width:
+        raise ValueError(f"No {width}-byte array type on this platform")
+
+    samples.frombytes(audio)
+    if sys.byteorder == "big":
+        samples.byteswap()
+
+    columns = [samples[c::channels] for c in range(channels)]
+    mono = array.array(
+        typecode, [total // channels for total in map(sum, zip(*columns))]
+    )
+    if sys.byteorder == "big":
+        mono.byteswap()
+
+    return mono.tobytes()
 
 
 def wav_to_chunks(
