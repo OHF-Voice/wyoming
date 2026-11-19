@@ -171,8 +171,14 @@ class AudioChunkConverter:
         channels = chunk.channels
         if (self.channels is not None) and (chunk.channels != self.channels):
             # Convert to mono or stereo
+            if channels > 2:
+                # audioop only mixes stereo, so average the channels to mono first
+                audio_bytes = _average_channels(audio_bytes, width, channels)
+                channels = 1
+
             if self.channels == 1:
-                audio_bytes = audioop.tomono(audio_bytes, width, 0.5, 0.5)
+                if channels == 2:
+                    audio_bytes = audioop.tomono(audio_bytes, width, 0.5, 0.5)
             elif self.channels == 2:
                 audio_bytes = audioop.tostereo(audio_bytes, width, 1.0, 1.0)
             else:
@@ -200,6 +206,21 @@ class AudioChunkConverter:
             audio_bytes,
             timestamp=chunk.timestamp,
         )
+
+
+def _average_channels(audio: bytes, width: int, channels: int) -> bytes:
+    """Average each frame's channels into one sample (unsigned when width is 1)."""
+    signed = width > 1
+    frame_size = width * channels
+    mono = bytearray()
+    for frame_start in range(0, len(audio) - frame_size + 1, frame_size):
+        total = sum(
+            int.from_bytes(audio[i : i + width], "little", signed=signed)
+            for i in range(frame_start, frame_start + frame_size, width)
+        )
+        mono += (total // channels).to_bytes(width, "little", signed=signed)
+
+    return bytes(mono)
 
 
 def wav_to_chunks(

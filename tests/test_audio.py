@@ -143,3 +143,34 @@ def test_chunk_converter_stereo_to_mono_averages() -> None:
         for i in range(0, len(mono_chunk.audio), 2)
     ]
     assert samples == [(left + right) // 2] * 10
+
+
+def test_chunk_converter_multichannel_to_mono_averages() -> None:
+    """More than two channels are averaged per frame, not read as stereo pairs."""
+    for channels in (3, 4, 6):
+        values = [1000 * (c + 1) for c in range(channels)]
+        frame = b"".join(v.to_bytes(2, "little", signed=True) for v in values)
+
+        mono_chunk = AudioChunkConverter(channels=1).convert(
+            AudioChunk(rate=16000, width=2, channels=channels, audio=frame * 10)
+        )
+
+        assert mono_chunk.channels == 1
+        assert len(mono_chunk.audio) == 10 * 2
+        samples = [
+            int.from_bytes(mono_chunk.audio[i : i + 2], "little", signed=True)
+            for i in range(0, len(mono_chunk.audio), 2)
+        ]
+        assert samples == [sum(values) // channels] * 10
+
+
+def test_chunk_converter_multichannel_to_stereo() -> None:
+    """More than two channels become stereo with one frame per input frame."""
+    frame = b"".join(v.to_bytes(2, "little", signed=True) for v in (100, 200, 300, 400))
+
+    stereo_chunk = AudioChunkConverter(channels=2).convert(
+        AudioChunk(rate=16000, width=2, channels=4, audio=frame * 10)
+    )
+
+    assert stereo_chunk.channels == 2
+    assert stereo_chunk.audio == (250).to_bytes(2, "little", signed=True) * 2 * 10
