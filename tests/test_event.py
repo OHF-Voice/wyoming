@@ -294,3 +294,33 @@ async def test_async_read_event_stream_closed(missing: str) -> None:
     reader.feed_eof()
 
     assert (await async_read_event(reader)) is None
+
+
+@pytest.mark.parametrize(
+    "field", ["data_length", "payload_length"]
+)
+def test_read_event_bad_length_type(field: str) -> None:
+    """Test synchronous event reading with a non-integer length header."""
+    # A malformed peer can send a header whose data_length/payload_length is not
+    # an integer. This must be rejected as a bad event (None), not raise.
+    header = {"type": "test-event", "version": wyoming_version, field: "5"}
+    header_bytes = json.dumps(header, ensure_ascii=False).encode("utf-8")
+
+    with io.BytesIO(header_bytes + b"\n" + b"abcde") as reader:
+        assert read_event(reader) is None
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "field", ["data_length", "payload_length"]
+)
+async def test_async_read_event_bad_length_type(field: str) -> None:
+    """Test asynchronous event reading with a non-integer length header."""
+    header = {"type": "test-event", "version": wyoming_version, field: "5"}
+    header_bytes = json.dumps(header, ensure_ascii=False).encode("utf-8")
+
+    reader = asyncio.StreamReader()
+    reader.feed_data(header_bytes + b"\n" + b"abcde")
+    reader.feed_eof()
+
+    assert (await async_read_event(reader)) is None
