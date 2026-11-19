@@ -1,6 +1,7 @@
 """Test audio utilities."""
 
 import io
+import random
 import wave
 
 from wyoming.audio import (
@@ -143,3 +144,87 @@ def test_chunk_converter_stereo_to_mono_averages() -> None:
         for i in range(0, len(mono_chunk.audio), 2)
     ]
     assert samples == [(left + right) // 2] * 10
+
+
+def test_chunk_converter_multichannel_to_mono_averages() -> None:
+    """More than two channels are averaged per frame, not read as stereo pairs."""
+    for channels in (3, 4, 6):
+        values = [1000 * (c + 1) for c in range(channels)]
+        frame = b"".join(v.to_bytes(2, "little", signed=True) for v in values)
+
+        mono_chunk = AudioChunkConverter(channels=1).convert(
+            AudioChunk(rate=16000, width=2, channels=channels, audio=frame * 10)
+        )
+
+        assert mono_chunk.channels == 1
+        assert len(mono_chunk.audio) == 10 * 2
+        samples = [
+            int.from_bytes(mono_chunk.audio[i : i + 2], "little", signed=True)
+            for i in range(0, len(mono_chunk.audio), 2)
+        ]
+        assert samples == [sum(values) // channels] * 10
+
+
+def test_chunk_converter_multichannel_to_stereo() -> None:
+    """More than two channels become stereo with one frame per input frame."""
+    frame = b"".join(v.to_bytes(2, "little", signed=True) for v in (100, 200, 300, 400))
+
+    stereo_chunk = AudioChunkConverter(channels=2).convert(
+        AudioChunk(rate=16000, width=2, channels=4, audio=frame * 10)
+    )
+
+    assert stereo_chunk.channels == 2
+    assert stereo_chunk.audio == (250).to_bytes(2, "little", signed=True) * 2 * 10
+
+
+def _reference_downmix(audio: bytes, width: int, channels: int) -> bytes:
+    """Sample-by-sample average of each frame's channels (unsigned at width 1)."""
+    signed = width > 1
+    frame_size = width * channels
+    mono = bytearray()
+    for frame_start in range(0, len(audio) - frame_size + 1, frame_size):
+        total = sum(
+            int.from_bytes(audio[i : i + width], "little", signed=signed)
+            for i in range(frame_start, frame_start + frame_size, width)
+        )
+        mono += (total // channels).to_bytes(width, "little", signed=signed)
+
+    return bytes(mono)
+
+
+def test_chunk_converter_multichannel_widths() -> None:
+    """Downmix matches a per-sample average for every width, including extremes."""
+    rng = random.Random(1234)
+    for width in (1, 2, 3, 4):
+        bits = 8 * width
+        if width == 1:
+            low, high = 0, 255
+        else:
+            low, high = -(2 ** (bits - 1)), 2 ** (bits - 1) - 1
+
+        for channels in (3, 4, 6):
+            values = [low] * channels + [high] * channels
+            values += [rng.randint(low, high) for _ in range(channels * 50)]
+            audio = b"".join(
+                v.to_bytes(width, "little", signed=width > 1) for v in values
+            )
+
+            # Trailing partial frame is dropped
+            audio += b"\x01" * (width * (channels - 1))
+
+            mono_chunk = AudioChunkConverter(channels=1).convert(
+                AudioChunk(rate=16000, width=width, channels=channels, audio=audio)
+            )
+
+            assert mono_chunk.width == width
+            assert len(mono_chunk.audio) == 52 * width
+            assert mono_chunk.audio == _reference_downmix(audio, width, channels)
+
+
+def test_chunk_converter_multichannel_unsigned_silence() -> None:
+    """8-bit audio is unsigned, so silence (128) stays silence."""
+    mono_chunk = AudioChunkConverter(channels=1).convert(
+        AudioChunk(rate=16000, width=1, channels=4, audio=bytes([128]) * 4 * 10)
+    )
+
+    assert mono_chunk.audio == bytes([128]) * 10
