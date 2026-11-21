@@ -179,7 +179,16 @@ class AudioChunkConverter:
 
             if self.channels == 1:
                 if channels == 2:
-                    audio_bytes = audioop.tomono(audio_bytes, width, 0.5, 0.5)
+                    if width == 1:
+                        # audioop.tomono treats 8-bit samples as signed, but WAV
+                        # 8-bit audio is unsigned (silence = 128). Bias to signed
+                        # before averaging and back afterwards, as the width
+                        # conversion above does for lin2lin.
+                        audio_bytes = audioop.bias(audio_bytes, 1, -128)
+                        audio_bytes = audioop.tomono(audio_bytes, width, 0.5, 0.5)
+                        audio_bytes = audioop.bias(audio_bytes, 1, 128)
+                    else:
+                        audio_bytes = audioop.tomono(audio_bytes, width, 0.5, 0.5)
             elif self.channels == 2:
                 audio_bytes = audioop.tostereo(audio_bytes, width, 1.0, 1.0)
             else:
