@@ -160,13 +160,13 @@ class AudioChunkConverter:
         audio_bytes = chunk.audio
         width = chunk.width
 
+        if width == 1:
+            # 8-bit samples are unsigned, but audioop expects signed samples
+            audio_bytes = audioop.bias(audio_bytes, 1, -128)
+
         if (self.width is not None) and (chunk.width != self.width):
             # Convert sample width
-            if chunk.width == 1:
-                audio_bytes = audioop.bias(audio_bytes, 1, -128)
             audio_bytes = audioop.lin2lin(audio_bytes, chunk.width, self.width)
-            if self.width == 1:
-                audio_bytes = audioop.bias(audio_bytes, 1, 128)
             width = self.width
 
         channels = chunk.channels
@@ -200,6 +200,9 @@ class AudioChunkConverter:
             )
             rate = self.rate
 
+        if width == 1:
+            audio_bytes = audioop.bias(audio_bytes, 1, 128)
+
         return AudioChunk(
             rate,
             width,
@@ -209,13 +212,13 @@ class AudioChunkConverter:
         )
 
 
-_ARRAY_TYPECODES = {1: "B", 2: "h", 4: "i"}
+_ARRAY_TYPECODES = {1: "b", 2: "h", 4: "i"}
 
 
 def _average_channels(audio: bytes, width: int, channels: int) -> bytes:
-    """Average each frame's channels into one sample (unsigned when width is 1).
+    """Average each frame's channels into one sample.
 
-    Samples are little-endian. A trailing partial frame is dropped.
+    Samples are signed and little-endian. A trailing partial frame is dropped.
     """
     frame_size = width * channels
     audio = audio[: len(audio) - (len(audio) % frame_size)]
