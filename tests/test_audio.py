@@ -228,3 +228,31 @@ def test_chunk_converter_multichannel_unsigned_silence() -> None:
     )
 
     assert mono_chunk.audio == bytes([128]) * 10
+
+
+def test_chunk_converter_8bit_stereo_to_mono() -> None:
+    """Unsigned 8-bit stereo is averaged around 128, not as signed bytes."""
+    mono_chunk = AudioChunkConverter(channels=1).convert(
+        AudioChunk(rate=16000, width=1, channels=2, audio=bytes([255, 1, 200, 100]))
+    )
+
+    assert mono_chunk.audio == bytes([128, 150])
+
+
+def test_chunk_converter_8bit_resample_matches_16bit() -> None:
+    """Resampling unsigned 8-bit audio near silence (128) does not wrap around."""
+    values = list(range(121, 138))
+    audio_8bit = bytes(values)
+    audio_16bit = b"".join(
+        ((v - 128) << 8).to_bytes(2, "little", signed=True) for v in values
+    )
+
+    chunk_8bit = AudioChunkConverter(rate=12000).convert(
+        AudioChunk(rate=16000, width=1, channels=1, audio=audio_8bit)
+    )
+    chunk_16bit = AudioChunkConverter(rate=12000, width=1).convert(
+        AudioChunk(rate=16000, width=2, channels=1, audio=audio_16bit)
+    )
+
+    assert chunk_8bit.audio == chunk_16bit.audio
+    assert all(abs(sample - 128) <= 10 for sample in chunk_8bit.audio)
