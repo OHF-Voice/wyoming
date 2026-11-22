@@ -5,6 +5,10 @@
 - Add optional `acknowledge` to `handled`
     - True tells the client a short sound is enough instead of speaking `text`
     - `text` is still the response, for clients that show it
+- `WakeProcessAsyncClient` returns `None` when the wake program exits
+    - Previously every read after exit returned a detection with no name at once
+- `MicProcessAsyncClient` stamps audio chunks in milliseconds, like the rest of the protocol
+    - Previously the timestamp was in nanoseconds
 
 ## 1.11.0
 
