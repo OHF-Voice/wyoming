@@ -79,7 +79,7 @@ class MicProcessAsyncClient(AsyncClient, contextlib.AbstractAsyncContextManager)
                 width=self.width,
                 channels=self.channels,
                 audio=audio_bytes,
-                timestamp=time.monotonic_ns(),
+                timestamp=time.monotonic_ns() // 1_000_000,
             ).event()
         except asyncio.IncompleteReadError:
             return None
