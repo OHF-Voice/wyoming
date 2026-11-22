@@ -5,6 +5,13 @@
 - Add optional `acknowledge` to `handled`
     - True tells the client a short sound is enough instead of speaking `text`
     - `text` is still the response, for clients that show it
+- `AudioChunkConverter` averages channels when converting to mono
+    - Stereo was summed, doubling the level and clipping loud samples
+    - More than two channels were read as stereo pairs, stretching the audio
+- `pyaudioop.ratecv` rounds like `audioop.ratecv` (Python 3.13+)
+- `wav_to_chunks` sends the `timestamp` argument on `audio-start`, and chunk timestamps no longer drift from rounding
+- `async_read_event` returns `None` when the stream closes mid-event, like `read_event`
+- `AsyncEventHandler` treats a lost connection during writes as a disconnect instead of an unhandled task exception
 - `WakeProcessAsyncClient` returns `None` when the wake program exits
     - Previously every read after exit returned a detection with no name at once
 - `MicProcessAsyncClient` stamps audio chunks in milliseconds, like the rest of the protocol
