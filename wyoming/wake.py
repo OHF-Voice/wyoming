@@ -175,7 +175,12 @@ class WakeProcessAsyncClient(AsyncClient, contextlib.AbstractAsyncContextManager
         assert self._proc is not None
         assert self._proc.stdout is not None
 
-        line = (await self._proc.stdout.readline()).decode("utf-8").strip()
+        line_bytes = await self._proc.stdout.readline()
+        if not line_bytes:
+            # Program exited
+            return None
+
+        line = line_bytes.decode("utf-8").strip()
         name = line if line else None
         return Detection(name=name).event()
 
