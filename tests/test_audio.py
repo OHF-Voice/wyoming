@@ -146,6 +146,28 @@ def test_chunk_converter_stereo_to_mono_averages() -> None:
     assert samples == [(left + right) // 2] * 10
 
 
+def test_chunk_converter_8bit_stereo_to_mono_averages() -> None:
+    """Unsigned 8-bit stereo is averaged as unsigned, not interpreted as signed.
+
+    WAV 8-bit samples are unsigned (silence = 128). Averaging the left=0 and
+    right=255 extremes must give ~127 (near silence), not full scale. Feeding
+    the unsigned bytes straight into audioop.tomono treats them as signed and
+    produces 255 instead.
+    """
+    # Each frame: left = 0 (unsigned min), right = 255 (unsigned max)
+    stereo = bytes([0, 255]) * 10
+
+    converter = AudioChunkConverter(channels=1)
+    mono_chunk = converter.convert(
+        AudioChunk(rate=16000, width=1, channels=2, audio=stereo)
+    )
+
+    assert mono_chunk.channels == 1
+    assert mono_chunk.width == 1
+    assert len(mono_chunk.audio) == 10
+    assert list(mono_chunk.audio) == [127] * 10
+
+
 def test_chunk_converter_multichannel_to_mono_averages() -> None:
     """More than two channels are averaged per frame, not read as stereo pairs."""
     for channels in (3, 4, 6):
